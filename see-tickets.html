@@ -784,14 +784,82 @@
 
     let zoom = 1;
     let activeSection = null;
+    const MAX_VISIBLE_PRICE_TAGS = 14;
+    const LABEL_PADDING = 8;
 
     function money(v){
       return match.currency + Number(v).toLocaleString("en-IN");
     }
 
+    function getSectionPriority(sec){
+      if (activeSection && sec.id === activeSection) return 1000;
+      if (sec.left <= 2) return 800;
+      if (sec.rating >= 9) return 700;
+      if (sec.left <= 4) return 600;
+      if (sec.group === "few") return 500;
+      return 300;
+    }
+
+    function clampPosition(left, top, width, height){
+      const maxLeft = Math.max(LABEL_PADDING, stadium.clientWidth - width - LABEL_PADDING);
+      const maxTop = Math.max(LABEL_PADDING, stadium.clientHeight - height - LABEL_PADDING);
+      return {
+        left: Math.min(Math.max(left, LABEL_PADDING), maxLeft),
+        top: Math.min(Math.max(top, LABEL_PADDING), maxTop)
+      };
+    }
+
+    function getCandidatePositions(sec, width, height){
+      const cx = sec.x + sec.w / 2;
+      const cy = sec.y + sec.h / 2;
+      return [
+        { left: cx - width / 2, top: sec.y - height - 6 },
+        { left: cx - width / 2, top: sec.y + sec.h + 6 },
+        { left: sec.x + sec.w + 8, top: cy - height / 2 },
+        { left: sec.x - width - 8, top: cy - height / 2 },
+        { left: sec.x + sec.w + 8, top: sec.y - height - 4 },
+        { left: sec.x - width - 8, top: sec.y - height - 4 },
+        { left: sec.x + sec.w + 8, top: sec.y + sec.h + 4 },
+        { left: sec.x - width - 8, top: sec.y + sec.h + 4 }
+      ];
+    }
+
+    function hasCollision(rect, placedRects){
+      return placedRects.some((box) => !(
+        rect.right + LABEL_PADDING < box.left ||
+        rect.left > box.right + LABEL_PADDING ||
+        rect.bottom + LABEL_PADDING < box.top ||
+        rect.top > box.bottom + LABEL_PADDING
+      ));
+    }
+
+    function createPriceTag(sec){
+      const tag = document.createElement("div");
+      tag.className = "seat-label";
+      tag.style.visibility = "hidden";
+      tag.style.pointerEvents = "none";
+
+      const subText = `${sec.left} left`;
+      const good = sec.rating >= 9 ? sec.quality : "";
+      tag.innerHTML = `
+        <div class="label-price">${money(sec.price)}</div>
+        ${good ? `<div class="label-good">${good}</div>` : `<div class="label-sub">${subText}</div>`}
+      `;
+
+      tag.addEventListener("click", ()=>{
+        if(sec.group === "sold") return;
+        activeSection = sec.id;
+        buildSections();
+        renderCards();
+      });
+
+      return tag;
+    }
+
     function buildSections(){
       blocksLayer.innerHTML = "";
       labelsLayer.innerHTML = "";
+      const candidates = [];
 
       match.sections.forEach(sec=>{
         const block = document.createElement("div");
@@ -816,29 +884,67 @@
         });
 
         blocksLayer.appendChild(block);
+        if(sec.price > 0 && sec.group !== "sold"){
+          candidates.push(sec);
+        }
+      });
 
-        if(sec.price > 0){
-          const tag = document.createElement("div");
-          tag.className = "seat-label";
-          tag.style.left = (sec.x + sec.w/2 - 32) + "px";
-          tag.style.top = (sec.y - 16) + "px";
+      const activeCandidate = candidates.find((sec) => sec.id === activeSection);
+      const sortedCandidates = candidates
+        .filter((sec) => sec.id !== activeSection)
+        .sort((a, b) => getSectionPriority(b) - getSectionPriority(a));
 
-          let subText = sec.left <= 3 ? `${sec.left} left` : `${sec.left} left`;
-          let good = sec.rating >= 9 ? sec.quality : "";
+      const labelSections = [];
+      if (activeCandidate) {
+        labelSections.push(activeCandidate);
+      }
+      labelSections.push(...sortedCandidates.slice(0, MAX_VISIBLE_PRICE_TAGS));
 
-          tag.innerHTML = `
-            <div class="label-price">${money(sec.price)}</div>
-            ${good ? `<div class="label-good">${good}</div>` : `<div class="label-sub">${subText}</div>`}
-          `;
+      const placedRects = [];
+      labelSections.forEach((sec) => {
+        const tag = createPriceTag(sec);
+        labelsLayer.appendChild(tag);
+        const width = tag.offsetWidth;
+        const height = tag.offsetHeight;
+        const positions = getCandidatePositions(sec, width, height);
 
-          tag.addEventListener("click", ()=>{
-            if(sec.group === "sold") return;
-            activeSection = sec.id;
-            buildSections();
-            renderCards();
-          });
+        let placed = null;
+        for (const pos of positions) {
+          const clamped = clampPosition(pos.left, pos.top, width, height);
+          const rect = {
+            left: clamped.left,
+            top: clamped.top,
+            right: clamped.left + width,
+            bottom: clamped.top + height
+          };
 
-          labelsLayer.appendChild(tag);
+          if (!hasCollision(rect, placedRects)) {
+            placed = { ...clamped, rect };
+            break;
+          }
+        }
+
+        if (!placed && activeSection === sec.id) {
+          const fallback = clampPosition(sec.x + sec.w / 2 - width / 2, sec.y - height - 6, width, height);
+          placed = {
+            ...fallback,
+            rect: {
+              left: fallback.left,
+              top: fallback.top,
+              right: fallback.left + width,
+              bottom: fallback.top + height
+            }
+          };
+        }
+
+        if (placed) {
+          tag.style.left = `${placed.left}px`;
+          tag.style.top = `${placed.top}px`;
+          tag.style.visibility = "visible";
+          tag.style.pointerEvents = "auto";
+          placedRects.push(placed.rect);
+        } else {
+          tag.remove();
         }
       });
     }
