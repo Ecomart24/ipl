@@ -411,69 +411,208 @@
       text-align: center;
       padding: 16px;
       border-radius: 999px;
-      margin-bottom: 22px;
+      margin-bottom: 14px;
       font-weight: 800;
       letter-spacing: 1.2px;
       font-size: 18px;
     }
 
-    .seat-grid {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 14px;
+    .stadium-wrap {
+      position: relative;
+      border-radius: 20px;
+      border: 1px solid #d8deea;
+      background: #e5e7eb;
+      overflow: hidden;
+      padding: 10px;
     }
 
-    .seat {
-      height: 58px;
-      border-radius: 16px;
+    .map-zoom {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .zoom-btn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+      font-size: 30px;
+      line-height: 1;
+      cursor: pointer;
+      color: #0f172a;
+    }
+
+    .stadium-map {
+      width: 100%;
+      max-width: 860px;
+      height: 760px;
+      margin: 0 auto;
+      position: relative;
+      transform-origin: center center;
+      transition: transform 0.22s ease;
+    }
+
+    .stadium-shell {
+      position: absolute;
+      inset: 12px;
+      border-radius: 50%;
+      background: #eceff4;
+      border: 4px solid #d1d5db;
+      box-shadow: inset 0 0 0 3px #eff2f7;
+    }
+
+    .stadium-track {
+      position: absolute;
+      inset: 94px;
+      border-radius: 50%;
+      background: #f3f4f6;
+      border: 2px solid #dde0e5;
+      z-index: 1;
+    }
+
+    .field {
+      position: absolute;
+      inset: 145px;
+      border-radius: 50%;
+      background: #4f8f34;
+      box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.45);
+      z-index: 2;
+    }
+
+    .pitch {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 28px;
+      height: 94px;
+      border-radius: 10px;
+      border: 3px solid #da8f22;
+      background: #f7a83d;
+      z-index: 3;
+      box-shadow: 0 0 0 18px rgba(28, 89, 26, 0.5);
+    }
+
+    .seat-ring,
+    .price-badges {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+    }
+
+    .price-badges {
+      z-index: 20;
+    }
+
+    .stadium-seat {
+      position: absolute;
+      border: 2px solid #ffffff;
+      border-radius: 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
-      font-size: 15px;
-      font-weight: 800;
-      line-height: 1;
-      padding: 4px;
+      gap: 1px;
       cursor: pointer;
       user-select: none;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+      transform-origin: center center;
+      text-align: center;
+      padding: 4px 5px;
+      width: 72px;
+      height: 52px;
     }
 
-    .seat-id {
-      font-size: 15px;
-      font-weight: 800;
+    .stadium-seat.grandstand {
+      width: 66px;
+      height: 44px;
     }
 
-    .seat-price {
-      font-size: 11px;
-      font-weight: 700;
-      opacity: 0.92;
+    .stadium-seat .seat-id {
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 0.9;
     }
 
-    .seat.available {
-      background: #c6e8d3;
-      color: #0c5d40;
+    .stadium-seat .seat-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
     }
 
-    .seat.grandstand.available {
-      background: #d6e5b4;
-      color: #455f1f;
+    .stadium-seat.available {
+      background: #b9dd88;
+      color: #3f5b1d;
     }
 
-    .seat.booked {
-      background: #efd4d6;
+    .stadium-seat.grandstand.available {
+      background: #a7cf69;
+      color: #29440f;
+    }
+
+    .stadium-seat.booked {
+      background: #e7c8ca;
       color: #8d1b1b;
       cursor: not-allowed;
     }
 
-    .seat.selected {
-      background: #88b8ef;
-      color: #0c3f89;
-      border: 2px solid #5a9ae5;
+    .stadium-seat.selected {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+
+    .price-tag {
+      position: absolute;
+      min-width: 114px;
+      padding: 8px 10px 7px;
+      border-radius: 12px;
+      border: 1px solid #e3e6ed;
+      background: #ffffff;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .price-tag strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.05;
+    }
+
+    .price-tag span {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      color: #f43388;
+      line-height: 1.05;
+      margin-top: 2px;
+    }
+
+    .price-tag.selected {
+      background: #0f172a;
+      border-color: #0f172a;
+    }
+
+    .price-tag.selected strong,
+    .price-tag.selected span {
+      color: #ffffff;
     }
 
     .grandstand-box {
-      background: #d6e5b4;
+      background: #a7cf69;
     }
 
     .checkout-box {
@@ -604,8 +743,31 @@
         font-size: 38px;
       }
 
-      .seat-grid {
-        grid-template-columns: repeat(4, 1fr);
+      .stadium-map {
+        height: 620px;
+      }
+
+      .stadium-seat {
+        width: 58px;
+        height: 42px;
+      }
+
+      .stadium-seat.grandstand {
+        width: 52px;
+        height: 36px;
+      }
+
+      .price-tag {
+        min-width: 92px;
+        padding: 6px 8px;
+      }
+
+      .price-tag strong {
+        font-size: 11px;
+      }
+
+      .price-tag span {
+        font-size: 10px;
       }
 
       .event-card,
@@ -711,7 +873,21 @@
             </div>
 
             <div class="screen">STADIUM VIEW</div>
-            <div class="seat-grid" id="seatGrid"></div>
+            <div class="stadium-wrap">
+              <div class="map-zoom">
+                <button class="zoom-btn" id="zoomInBtn" type="button">+</button>
+                <button class="zoom-btn" id="zoomOutBtn" type="button">−</button>
+              </div>
+
+              <div class="stadium-map" id="stadiumMap">
+                <div class="stadium-shell"></div>
+                <div class="stadium-track"></div>
+                <div class="field"></div>
+                <div class="pitch"></div>
+                <div class="seat-ring" id="seatRing"></div>
+                <div class="price-badges" id="priceBadges"></div>
+              </div>
+            </div>
           </div>
 
           <div class="checkout-box">
@@ -908,7 +1084,11 @@
     const bookingPanel = document.getElementById("bookingPanel");
     const bookingTitle = document.getElementById("bookingTitle");
     const bookingMeta = document.getElementById("bookingMeta");
-    const seatGrid = document.getElementById("seatGrid");
+    const seatRing = document.getElementById("seatRing");
+    const priceBadges = document.getElementById("priceBadges");
+    const stadiumMap = document.getElementById("stadiumMap");
+    const zoomInBtn = document.getElementById("zoomInBtn");
+    const zoomOutBtn = document.getElementById("zoomOutBtn");
 
     const summaryMatch = document.getElementById("summaryMatch");
     const summarySeats = document.getElementById("summarySeats");
@@ -927,6 +1107,7 @@
     let currentEvent = null;
     let selectedSeats = [];
     let seatData = [];
+    let stadiumZoom = 1;
     let viagogoPrices = [];
     let viagogoPriceFetchedAt = 0;
 
@@ -1026,6 +1207,10 @@
 
     function formatInr(value) {
       return `INR ${Number(value || 0).toLocaleString("en-IN")}`;
+    }
+
+    function formatInrCompact(value) {
+      return `INR${Number(value || 0).toLocaleString("en-IN")}`;
     }
 
     function stableHash(text) {
@@ -1331,28 +1516,87 @@
     }
 
     function renderSeats() {
-      seatGrid.innerHTML = seatData
-        .map((seat) => {
-          let classes = "seat ";
-          if (seat.grandstand) {
-            classes += "grandstand ";
-          }
-          if (seat.booked) {
-            classes += "booked";
-          } else if (selectedSeats.includes(seat.id)) {
-            classes += "selected";
-          } else {
-            classes += "available";
-          }
+      const centerX = 430;
+      const centerY = 380;
+      const rows = ["A", "B", "C", "D", "E", "F"];
+      const seatMarkup = [];
+      const badgeMarkup = [];
 
-          return `
-            <div class="${classes}" onclick="toggleSeat('${seat.id}')">
-              <span class="seat-id">${seat.id}</span>
-              <span class="seat-price">${formatInr(seat.price).replace("INR ", "")}</span>
+      function getSeatLayout(seat) {
+        if (seat.grandstand) {
+          const index = clamp(Number.parseInt(seat.id.replace("GS", ""), 10) - 1, 0, 11);
+          const start = 210;
+          const span = 120;
+          const step = span / 11;
+          const angle = start + index * step;
+          const wobble = index % 2 === 0 ? 8 : -8;
+          return {
+            angle,
+            radius: 356 + wobble
+          };
+        }
+
+        const row = seat.id.charAt(0);
+        const seatNo = clamp(Number.parseInt(seat.id.slice(1), 10) - 1, 0, 7);
+        const rowIndex = Math.max(0, rows.indexOf(row));
+        const angleStart = -148;
+        const angleSpan = 296;
+        const step = angleSpan / 7;
+        return {
+          angle: angleStart + seatNo * step + rowIndex * 1.8,
+          radius: 330 - rowIndex * 38
+        };
+      }
+
+      seatData.forEach((seat) => {
+        const { angle, radius } = getSeatLayout(seat);
+        const rad = (angle * Math.PI) / 180;
+        const x = centerX + radius * Math.cos(rad);
+        const y = centerY + radius * Math.sin(rad);
+        const badgeRadius = radius + (seat.grandstand ? 58 : 52);
+        const bx = centerX + badgeRadius * Math.cos(rad);
+        const by = centerY + badgeRadius * Math.sin(rad);
+        const isSelected = selectedSeats.includes(seat.id);
+        const leftCount = seat.booked ? 0 : 1 + (stableHash(`${seat.id}:${currentEvent?.id || "match"}:left`) % 10);
+
+        let classes = "stadium-seat ";
+        if (seat.grandstand) {
+          classes += "grandstand ";
+        }
+        if (seat.booked) {
+          classes += "booked";
+        } else if (isSelected) {
+          classes += "selected";
+        } else {
+          classes += "available";
+        }
+
+        seatMarkup.push(`
+          <button
+            type="button"
+            class="${classes}"
+            onclick="toggleSeat('${seat.id}')"
+            style="left:${x}px; top:${y}px; transform: translate(-50%, -50%) rotate(${angle + 90}deg);"
+            title="${seat.id} - ${formatInrCompact(seat.price)}"
+          >
+            <span class="seat-content" style="transform: rotate(${-(angle + 90)}deg);">
+              <span class="seat-id">${seat.id.replace(/[0-9]/g, "")}</span>
+            </span>
+          </button>
+        `);
+
+        if (!seat.booked) {
+          badgeMarkup.push(`
+            <div class="price-tag ${isSelected ? "selected" : ""}" style="left:${bx}px; top:${by}px;">
+              <strong>${formatInrCompact(seat.price)}</strong>
+              <span>${leftCount} left</span>
             </div>
-          `;
-        })
-        .join("");
+          `);
+        }
+      });
+
+      seatRing.innerHTML = seatMarkup.join("");
+      priceBadges.innerHTML = badgeMarkup.join("");
     }
 
     function getSelectedSeatItems() {
@@ -1392,6 +1636,8 @@
 
       selectedSeats = [];
       generateSeats();
+      stadiumZoom = 1;
+      stadiumMap.style.transform = "scale(1)";
 
       bookingTitle.textContent = currentEvent.title;
       bookingMeta.textContent = `${currentEvent.time} | ${currentEvent.city}, ${currentEvent.location} | ${currentEvent.stadium}`;
@@ -1537,6 +1783,16 @@
     cityFilter.addEventListener("change", renderEvents);
     dateFilter.addEventListener("change", renderEvents);
     priceFilter.addEventListener("change", renderEvents);
+
+    zoomInBtn.addEventListener("click", () => {
+      stadiumZoom = Math.min(1.45, stadiumZoom + 0.08);
+      stadiumMap.style.transform = `scale(${stadiumZoom})`;
+    });
+
+    zoomOutBtn.addEventListener("click", () => {
+      stadiumZoom = Math.max(0.72, stadiumZoom - 0.08);
+      stadiumMap.style.transform = `scale(${stadiumZoom})`;
+    });
 
     refreshMatchesBtn.addEventListener("click", () => {
       loadMatches(true);
