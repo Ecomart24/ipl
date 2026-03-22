@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Thank You - IPL Tickets</title>
+  <title>Booking Confirmed - IPL Tickets</title>
   <style>
     * {
       box-sizing: border-box;
@@ -14,22 +14,26 @@
 
     body {
       min-height: 100vh;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      color: #111827;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: linear-gradient(135deg, #0a1229 0%, #1c2a46 100%);
+      color: #0f172a;
       padding: 24px;
     }
 
-    .card {
+    .wrap {
       width: 100%;
-      max-width: 760px;
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 18px;
+    }
+
+    .card {
       background: #ffffff;
-      border-radius: 22px;
-      padding: 28px;
-      border: 1px solid #e5e7eb;
-      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+      border-radius: 20px;
+      border: 1px solid #d9e1ec;
+      padding: 22px;
+      box-shadow: 0 20px 45px rgba(10, 18, 41, 0.2);
     }
 
     .badge {
@@ -37,69 +41,71 @@
       background: #dcfce7;
       color: #166534;
       border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 13px;
+      padding: 7px 11px;
+      font-size: 12px;
       font-weight: 700;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     h1 {
       font-size: 34px;
-      margin-bottom: 10px;
-      line-height: 1.1;
-      color: #111827;
+      line-height: 1.08;
+      margin-bottom: 8px;
+      color: #101828;
     }
 
     .sub {
-      color: #4b5563;
-      font-size: 17px;
-      margin-bottom: 22px;
+      color: #475569;
+      font-size: 16px;
       line-height: 1.45;
+      margin-bottom: 18px;
     }
 
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
     .item {
       background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 12px;
+      border: 1px solid #dce4f0;
+      border-radius: 12px;
+      padding: 10px;
     }
 
     .label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.35px;
       text-transform: uppercase;
       color: #64748b;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .value {
-      font-size: 15px;
+      font-size: 14px;
       color: #0f172a;
-      font-weight: 600;
+      font-weight: 700;
       word-break: break-word;
+      line-height: 1.35;
     }
 
     .note {
       color: #475569;
       background: #f1f5f9;
-      border: 1px dashed #cbd5e1;
+      border: 1px dashed #c8d5e3;
       border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 20px;
+      padding: 11px;
+      margin-bottom: 14px;
       line-height: 1.5;
+      font-size: 14px;
     }
 
     .actions {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
@@ -108,11 +114,14 @@
       background: #ffffff;
       color: #0f172a;
       border-radius: 12px;
-      padding: 12px 16px;
+      padding: 11px 15px;
       text-decoration: none;
       font-size: 14px;
       font-weight: 700;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
     }
 
     .btn.primary {
@@ -122,85 +131,505 @@
     }
 
     .btn:hover {
-      opacity: 0.92;
+      opacity: 0.94;
+    }
+
+    .ticket-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .ticket-head h2 {
+      font-size: 22px;
+      color: #101828;
+    }
+
+    .ticket {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #d7e1f0;
+      border-radius: 18px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ticket::before,
+    .ticket::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #e7edf7;
+      transform: translateY(-50%);
+      border: 1px solid #d1d9e6;
+    }
+
+    .ticket::before {
+      left: -10px;
+    }
+
+    .ticket::after {
+      right: -10px;
+    }
+
+    .league {
+      color: #4f46e5;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .ticket-title {
+      font-size: 22px;
+      color: #0f172a;
+      font-weight: 900;
+      line-height: 1.12;
+      margin-bottom: 10px;
+    }
+
+    .status-pill {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #b7efc7;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 10px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .ticket-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-bottom: 12px;
+    }
+
+    .ticket-row {
+      background: #eef4ff;
+      border: 1px solid #d3def2;
+      border-radius: 10px;
+      padding: 9px;
+    }
+
+    .ticket-row span {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: 0.35px;
+    }
+
+    .ticket-row strong {
+      font-size: 14px;
+      color: #0f172a;
+      line-height: 1.3;
+    }
+
+    .separator {
+      margin: 11px 0;
+      border-top: 1px dashed #cdd8e8;
+    }
+
+    .ticket-bottom {
+      display: grid;
+      grid-template-columns: 1fr 128px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .attendee span {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: 0.35px;
+    }
+
+    .attendee strong {
+      display: block;
+      font-size: 20px;
+      color: #0f172a;
+      margin-bottom: 5px;
+      line-height: 1.2;
+    }
+
+    .attendee small {
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .qr-box {
+      width: 128px;
+      height: 128px;
+      border: 1px solid #d3deef;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 4px;
+    }
+
+    .ticket-code {
+      margin-top: 10px;
+      font-size: 13px;
+      letter-spacing: 0.6px;
+      color: #0f172a;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .ticket-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .wrap {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 700px) {
-      h1 {
-        font-size: 28px;
+      body {
+        padding: 12px;
       }
 
-      .grid {
+      h1 {
+        font-size: 27px;
+      }
+
+      .grid,
+      .ticket-grid,
+      .ticket-bottom {
         grid-template-columns: 1fr;
+      }
+
+      .ticket-code {
+        text-align: left;
       }
     }
   </style>
 </head>
 <body>
-  <main class="card">
-    <span class="badge">Booking Confirmed</span>
-    <h1>Thank you for your booking</h1>
-    <p class="sub">Your ticket has been sent to your email.</p>
+  <main class="wrap">
+    <section class="card">
+      <span class="badge">Payment Confirmed</span>
+      <h1>Your ticket is generated</h1>
+      <p class="sub">A personalized e-ticket has been generated with your name and booking details.</p>
 
-    <section class="grid">
-      <div class="item">
-        <div class="label">Booking ID</div>
-        <div class="value" id="bookingId">-</div>
-      </div>
-      <div class="item">
-        <div class="label">Match</div>
-        <div class="value" id="bookingMatch">-</div>
-      </div>
-      <div class="item">
-        <div class="label">Seats</div>
-        <div class="value" id="bookingSeats">-</div>
-      </div>
-      <div class="item">
-        <div class="label">Total Paid</div>
-        <div class="value" id="bookingTotal">INR 0</div>
-      </div>
-      <div class="item">
-        <div class="label">Name</div>
-        <div class="value" id="bookingName">-</div>
-      </div>
-      <div class="item">
-        <div class="label">Email</div>
-        <div class="value" id="bookingEmail">-</div>
-      </div>
-      <div class="item">
-        <div class="label">Payment</div>
-        <div class="value" id="bookingPayment">-</div>
+      <section class="grid">
+        <div class="item">
+          <div class="label">Booking ID</div>
+          <div class="value" id="bookingId">-</div>
+        </div>
+        <div class="item">
+          <div class="label">Match</div>
+          <div class="value" id="bookingMatch">-</div>
+        </div>
+        <div class="item">
+          <div class="label">Seats</div>
+          <div class="value" id="bookingSeats">-</div>
+        </div>
+        <div class="item">
+          <div class="label">Total Paid</div>
+          <div class="value" id="bookingTotal">INR 0</div>
+        </div>
+        <div class="item">
+          <div class="label">Name</div>
+          <div class="value" id="bookingName">-</div>
+        </div>
+        <div class="item">
+          <div class="label">Email</div>
+          <div class="value" id="bookingEmail">-</div>
+        </div>
+        <div class="item">
+          <div class="label">Payment</div>
+          <div class="value" id="bookingPayment">-</div>
+        </div>
+      </section>
+
+      <p class="note">
+        Your ticket is ready. You can download the ticket image or print this page.
+      </p>
+
+      <div class="actions">
+        <a href="index.html" class="btn primary">Book Another Match</a>
+        <a href="index.html" class="btn">Back to Home</a>
       </div>
     </section>
 
-    <p class="note">
-      A confirmation email has been prepared for your inbox. For this demo version, this page confirms the booking flow and email destination.
-    </p>
+    <section class="card">
+      <div class="ticket-head">
+        <h2>Generated E-ticket</h2>
+      </div>
 
-    <div class="actions">
-      <a href="index.html" class="btn primary">Book Another Match</a>
-      <a href="index.html" class="btn">Back to Home</a>
-    </div>
+      <article class="ticket" id="ticketCard">
+        <div class="league">Indian Premier League</div>
+        <div class="ticket-title" id="ticketMatch">-</div>
+        <span class="status-pill">PAID</span>
+
+        <div class="ticket-grid">
+          <div class="ticket-row">
+            <span>Date</span>
+            <strong id="ticketDate">-</strong>
+          </div>
+          <div class="ticket-row">
+            <span>Time</span>
+            <strong id="ticketTime">-</strong>
+          </div>
+          <div class="ticket-row">
+            <span>Venue</span>
+            <strong id="ticketVenue">-</strong>
+          </div>
+          <div class="ticket-row">
+            <span>Seats</span>
+            <strong id="ticketSeats">-</strong>
+          </div>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="ticket-bottom">
+          <div class="attendee">
+            <span>Attendee</span>
+            <strong id="ticketName">-</strong>
+            <small id="ticketEmail">-</small>
+          </div>
+          <canvas class="qr-box" id="qrCanvas" width="128" height="128"></canvas>
+        </div>
+
+        <div class="ticket-code" id="ticketCode">-</div>
+      </article>
+
+      <div class="ticket-actions">
+        <button class="btn primary" id="downloadTicketBtn">Download Ticket PNG</button>
+        <button class="btn" id="printTicketBtn">Print Ticket</button>
+      </div>
+    </section>
   </main>
 
   <script>
     const params = new URLSearchParams(window.location.search);
 
+    function textOr(value, fallback = "-") {
+      const clean = String(value || "").trim();
+      return clean || fallback;
+    }
+
     function setText(id, value, fallback = "-") {
       const element = document.getElementById(id);
       if (!element) return;
-      element.textContent = value && value.trim() ? value : fallback;
+      element.textContent = textOr(value, fallback);
     }
 
-    setText("bookingId", params.get("id"));
-    setText("bookingMatch", params.get("match"));
-    setText("bookingSeats", params.get("seats"));
-    setText("bookingName", params.get("name"));
-    setText("bookingEmail", params.get("email"));
-    setText("bookingPayment", params.get("payment"));
+    function formatInr(value) {
+      const numeric = Number(value || 0);
+      return `INR ${numeric.toLocaleString("en-IN")}`;
+    }
 
-    const total = params.get("total");
-    setText("bookingTotal", total ? `INR ${total}` : "INR 0");
+    function hashString(input) {
+      let hash = 0;
+      const text = String(input || "");
+      for (let i = 0; i < text.length; i += 1) {
+        hash = (hash << 5) - hash + text.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash);
+    }
+
+    function generateTicketCode(data) {
+      const seed = `${data.id}|${data.name}|${data.match}|${data.seats}|${data.total}`;
+      const h1 = hashString(seed).toString(36).toUpperCase();
+      const h2 = hashString(`${seed}|IPL`).toString(36).toUpperCase();
+      return `IPL-${h1.slice(0, 5)}-${h2.slice(0, 5)}`;
+    }
+
+    function drawQrLike(canvas, seedText) {
+      const ctx = canvas.getContext("2d");
+      const size = canvas.width;
+      const cells = 21;
+      const cellSize = size / cells;
+      const seedBase = hashString(seedText) || 1;
+      let seed = seedBase;
+
+      function rand() {
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        return seed / 4294967296;
+      }
+
+      function isFinder(x, y) {
+        const tl = x < 7 && y < 7;
+        const tr = x > 13 && y < 7;
+        const bl = x < 7 && y > 13;
+        return tl || tr || bl;
+      }
+
+      function drawFinder(x0, y0) {
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(x0 * cellSize, y0 * cellSize, 7 * cellSize, 7 * cellSize);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect((x0 + 1) * cellSize, (y0 + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect((x0 + 2) * cellSize, (y0 + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+      }
+
+      ctx.clearRect(0, 0, size, size);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+
+      drawFinder(0, 0);
+      drawFinder(14, 0);
+      drawFinder(0, 14);
+
+      ctx.fillStyle = "#0f172a";
+      for (let y = 0; y < cells; y += 1) {
+        for (let x = 0; x < cells; x += 1) {
+          if (isFinder(x, y)) continue;
+          if (rand() > 0.52) {
+            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+    }
+
+    function parseBookingData() {
+      const totalRaw = params.get("total");
+      const totalNumeric = Number(totalRaw || 0);
+
+      return {
+        id: textOr(params.get("id")),
+        match: textOr(params.get("match")),
+        date: textOr(params.get("date"), "Match Day"),
+        time: textOr(params.get("time"), "TBA"),
+        city: textOr(params.get("city"), "India"),
+        stadium: textOr(params.get("stadium"), "Stadium"),
+        seats: textOr(params.get("seats")),
+        name: textOr(params.get("name"), "Guest"),
+        email: textOr(params.get("email"), "No email"),
+        payment: textOr(params.get("payment"), "demo"),
+        total: Number.isFinite(totalNumeric) ? totalNumeric : 0
+      };
+    }
+
+    function renderBooking(data) {
+      setText("bookingId", data.id);
+      setText("bookingMatch", data.match);
+      setText("bookingSeats", data.seats);
+      setText("bookingName", data.name);
+      setText("bookingEmail", data.email);
+      setText("bookingPayment", data.payment);
+      setText("bookingTotal", formatInr(data.total), "INR 0");
+
+      setText("ticketMatch", data.match);
+      setText("ticketDate", data.date);
+      setText("ticketTime", data.time);
+      setText("ticketVenue", `${data.stadium}, ${data.city}`);
+      setText("ticketSeats", data.seats);
+      setText("ticketName", data.name);
+      setText("ticketEmail", data.email);
+    }
+
+    function buildTicketImage(data, ticketCode) {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1400;
+      canvas.height = 800;
+      const ctx = canvas.getContext("2d");
+
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, "#0f172a");
+      gradient.addColorStop(1, "#1f2f4d");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(48, 48, 1304, 704);
+
+      ctx.strokeStyle = "#d8e2f0";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(48, 48, 1304, 704);
+
+      ctx.fillStyle = "#4f46e5";
+      ctx.font = "bold 28px Arial";
+      ctx.fillText("INDIAN PREMIER LEAGUE - E TICKET", 86, 118);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 46px Arial";
+      ctx.fillText(data.match.slice(0, 42), 86, 184);
+
+      ctx.fillStyle = "#475569";
+      ctx.font = "24px Arial";
+      ctx.fillText(`${data.date}  |  ${data.time}`, 86, 226);
+      ctx.fillText(`${data.stadium}, ${data.city}`, 86, 262);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 26px Arial";
+      ctx.fillText(`Booking ID: ${data.id}`, 86, 332);
+      ctx.fillText(`Attendee: ${data.name}`, 86, 374);
+      ctx.fillText(`Email: ${data.email}`, 86, 416);
+      ctx.fillText(`Seats: ${data.seats}`, 86, 458);
+      ctx.fillText(`Total Paid: ${formatInr(data.total)}`, 86, 500);
+      ctx.fillText(`Payment: ${data.payment.toUpperCase()}`, 86, 542);
+
+      ctx.strokeStyle = "#d9e2ef";
+      ctx.setLineDash([10, 10]);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(88, 586);
+      ctx.lineTo(1250, 586);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 24px Arial";
+      ctx.fillText(`Ticket Code: ${ticketCode}`, 86, 642);
+
+      const qr = document.getElementById("qrCanvas");
+      if (qr) {
+        ctx.drawImage(qr, 1060, 188, 220, 220);
+      }
+
+      return canvas;
+    }
+
+    function sanitizeFilename(text) {
+      return String(text || "")
+        .replace(/[^a-z0-9_-]/gi, "_")
+        .replace(/_+/g, "_")
+        .replace(/^_+|_+$/g, "") || "ipl_ticket";
+    }
+
+    const bookingData = parseBookingData();
+    renderBooking(bookingData);
+
+    const ticketCode = generateTicketCode(bookingData);
+    setText("ticketCode", ticketCode);
+    drawQrLike(document.getElementById("qrCanvas"), `${ticketCode}|${bookingData.id}`);
+
+    document.getElementById("downloadTicketBtn").addEventListener("click", () => {
+      const imageCanvas = buildTicketImage(bookingData, ticketCode);
+      const link = document.createElement("a");
+      link.href = imageCanvas.toDataURL("image/png");
+      link.download = `${sanitizeFilename(bookingData.name)}_${sanitizeFilename(bookingData.id)}.png`;
+      link.click();
+    });
+
+    document.getElementById("printTicketBtn").addEventListener("click", () => {
+      window.print();
+    });
   </script>
 </body>
 </html>

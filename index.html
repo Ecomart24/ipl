@@ -1453,6 +1453,10 @@
         const params = new URLSearchParams({
           id: bookingId,
           match: currentEvent.title,
+          date: currentEvent.dateKey || "",
+          time: currentEvent.time || "",
+          city: currentEvent.city || "",
+          stadium: currentEvent.stadium || "",
           seats: seatLabel,
           total: String(total),
           name: buyerName.value.trim(),
