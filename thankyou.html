@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thank You - IPL Tickets</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 760px;
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 28px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+    }
+
+    .badge {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 34px;
+      margin-bottom: 10px;
+      line-height: 1.1;
+      color: #111827;
+    }
+
+    .sub {
+      color: #4b5563;
+      font-size: 17px;
+      margin-bottom: 22px;
+      line-height: 1.45;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+
+    .value {
+      font-size: 15px;
+      color: #0f172a;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .note {
+      color: #475569;
+      background: #f1f5f9;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 12px;
+      padding: 12px 16px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    .btn.primary {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+
+    .btn:hover {
+      opacity: 0.92;
+    }
+
+    @media (max-width: 700px) {
+      h1 {
+        font-size: 28px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <span class="badge">Booking Confirmed</span>
+    <h1>Thank you for your booking</h1>
+    <p class="sub">Your ticket has been sent to your email.</p>
+
+    <section class="grid">
+      <div class="item">
+        <div class="label">Booking ID</div>
+        <div class="value" id="bookingId">-</div>
+      </div>
+      <div class="item">
+        <div class="label">Match</div>
+        <div class="value" id="bookingMatch">-</div>
+      </div>
+      <div class="item">
+        <div class="label">Seats</div>
+        <div class="value" id="bookingSeats">-</div>
+      </div>
+      <div class="item">
+        <div class="label">Total Paid</div>
+        <div class="value" id="bookingTotal">INR 0</div>
+      </div>
+      <div class="item">
+        <div class="label">Name</div>
+        <div class="value" id="bookingName">-</div>
+      </div>
+      <div class="item">
+        <div class="label">Email</div>
+        <div class="value" id="bookingEmail">-</div>
+      </div>
+      <div class="item">
+        <div class="label">Payment</div>
+        <div class="value" id="bookingPayment">-</div>
+      </div>
+    </section>
+
+    <p class="note">
+      A confirmation email has been prepared for your inbox. For this demo version, this page confirms the booking flow and email destination.
+    </p>
+
+    <div class="actions">
+      <a href="index.html" class="btn primary">Book Another Match</a>
+      <a href="index.html" class="btn">Back to Home</a>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    function setText(id, value, fallback = "-") {
+      const element = document.getElementById(id);
+      if (!element) return;
+      element.textContent = value && value.trim() ? value : fallback;
+    }
+
+    setText("bookingId", params.get("id"));
+    setText("bookingMatch", params.get("match"));
+    setText("bookingSeats", params.get("seats"));
+    setText("bookingName", params.get("name"));
+    setText("bookingEmail", params.get("email"));
+    setText("bookingPayment", params.get("payment"));
+
+    const total = params.get("total");
+    setText("bookingTotal", total ? `INR ${total}` : "INR 0");
+  </script>
+</body>
+</html>

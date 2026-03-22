@@ -1323,23 +1323,17 @@
       showToast(`Payment success demo: INR ${total} via ${paymentMethod.value}`);
 
       setTimeout(() => {
-        alert(
-          "Booking Confirmed!\n\n" +
-            "Match: " +
-            currentEvent.title +
-            "\n" +
-            "Seats: " +
-            selectedSeats.join(", ") +
-            "\n" +
-            "Total: INR " +
-            total +
-            "\n" +
-            "Name: " +
-            buyerName.value +
-            "\n" +
-            "Payment: " +
-            paymentMethod.value
-        );
+        const bookingId = `IPL-${Date.now()}`;
+        const params = new URLSearchParams({
+          id: bookingId,
+          match: currentEvent.title,
+          seats: selectedSeats.join(", "),
+          total: String(total),
+          name: buyerName.value.trim(),
+          email: buyerEmail.value.trim(),
+          payment: paymentMethod.value
+        });
+        window.location.href = `thankyou.html?${params.toString()}`;
       }, 300);
     });
 
