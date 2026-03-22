@@ -1267,10 +1267,19 @@
         showToast("Match not found. Please refresh.");
         return;
       }
-      const params = new URLSearchParams({
-        match: currentEvent.title
-      });
-      window.location.href = `see-tickets.html?${params.toString()}`;
+
+      selectedSeats = [];
+      generateSeats();
+
+      bookingTitle.textContent = currentEvent.title;
+      bookingMeta.textContent = `${currentEvent.time} | ${currentEvent.city}, ${currentEvent.location} | ${currentEvent.stadium}`;
+      bookingPanel.classList.add("active");
+
+      renderSeats();
+      updateSummary();
+
+      bookingPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      showToast("Select your seats");
     }
 
     function toggleSeat(seatId) {
