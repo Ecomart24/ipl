@@ -356,10 +356,6 @@
           <div class="label">Email</div>
           <div class="value" id="bookingEmail">-</div>
         </div>
-        <div class="item">
-          <div class="label">Payment</div>
-          <div class="value" id="bookingPayment">-</div>
-        </div>
       </section>
 
       <p class="note">
@@ -520,7 +516,6 @@
         seats: textOr(params.get("seats")),
         name: textOr(params.get("name"), "Guest"),
         email: textOr(params.get("email"), "No email"),
-        payment: textOr(params.get("payment"), "demo"),
         total: Number.isFinite(totalNumeric) ? totalNumeric : 0
       };
     }
@@ -531,7 +526,6 @@
       setText("bookingSeats", data.seats);
       setText("bookingName", data.name);
       setText("bookingEmail", data.email);
-      setText("bookingPayment", data.payment);
       setText("bookingTotal", formatInr(data.total), "INR 0");
 
       setText("ticketMatch", data.match);
@@ -582,8 +576,6 @@
       ctx.fillText(`Email: ${data.email}`, 86, 416);
       ctx.fillText(`Seats: ${data.seats}`, 86, 458);
       ctx.fillText(`Total Paid: ${formatInr(data.total)}`, 86, 500);
-      ctx.fillText(`Payment: ${data.payment.toUpperCase()}`, 86, 542);
-
       ctx.strokeStyle = "#d9e2ef";
       ctx.setLineDash([10, 10]);
       ctx.lineWidth = 2;
