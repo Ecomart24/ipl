@@ -51,7 +51,7 @@
     .navbar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       padding: 22px 0;
       gap: 20px;
       flex-wrap: wrap;
@@ -66,40 +66,6 @@
 
     .logo span {
       color: #8bc34a;
-    }
-
-    .search-box {
-      flex: 1;
-      max-width: 420px;
-      background: white;
-      border-radius: 16px;
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .search-box input {
-      border: none;
-      outline: none;
-      width: 100%;
-      font-size: 15px;
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 22px;
-      color: white;
-      font-weight: 600;
-      flex-wrap: wrap;
-    }
-
-    .user-icon {
-      width: 36px;
-      height: 36px;
-      background: #8bc34a;
-      border-radius: 50%;
     }
 
     .hero-content {
@@ -635,20 +601,6 @@
     <div class="container">
       <div class="navbar">
         <div class="logo">via<span>gogo</span></div>
-
-        <div class="search-box">
-          <span>Search</span>
-          <input type="text" id="mainSearch" placeholder="Search events, artists, teams and more" />
-        </div>
-
-        <div class="nav-links">
-          <a href="#">Explore</a>
-          <a href="#">Sell</a>
-          <a href="#">Favourites</a>
-          <a href="#">My Tickets</a>
-          <a href="#">Sign In</a>
-          <div class="user-icon"></div>
-        </div>
       </div>
 
       <div class="hero-content">
@@ -800,6 +752,10 @@
     const API_BASE_URL = "https://www.thesportsdb.com/api/v1/json/3";
     const IPL_LEAGUE_ID = "4460";
     const REFRESH_INTERVAL_MS = 120000;
+    const VIAGOGO_EVENT_URL = "https://www.viagogo.com/ww/Sports-Tickets/Other-Sports/Cricket/Indian-Premier-League-Tickets/E-160669723?lt=28.576&lg=77.334&quantity=1";
+    const VIAGOGO_PROXY_PREFIX = "https://r.jina.ai/http://";
+    const VIAGOGO_USD_TO_INR = 83;
+    const VIAGOGO_PRICE_CACHE_MS = 10 * 60 * 1000;
 
     const fallbackEvents = [
       {
@@ -899,7 +855,6 @@
     const cityFilter = document.getElementById("cityFilter");
     const dateFilter = document.getElementById("dateFilter");
     const priceFilter = document.getElementById("priceFilter");
-    const mainSearch = document.getElementById("mainSearch");
 
     const apiStatusBar = document.getElementById("apiStatusBar");
     const upcomingCount = document.getElementById("upcomingCount");
@@ -937,6 +892,8 @@
     let currentEvent = null;
     let selectedSeats = [];
     let seatData = [];
+    let viagogoPrices = [];
+    let viagogoPriceFetchedAt = 0;
 
     function showToast(message) {
       toast.textContent = message;
@@ -1020,13 +977,90 @@
       };
     }
 
-    function getTicketPrice(idText) {
-      const numeric = Number.parseInt(idText, 10);
-      if (Number.isNaN(numeric)) {
-        return 2000;
+    function toViagogoProxyUrl(url) {
+      return `${VIAGOGO_PROXY_PREFIX}${String(url).replace(/^https?:\/\//i, "")}`;
+    }
+
+    function roundToNearest50(value) {
+      return Math.round(value / 50) * 50;
+    }
+
+    function stableHash(text) {
+      let hash = 0;
+      const input = String(text || "");
+      for (let i = 0; i < input.length; i += 1) {
+        hash = (hash << 5) - hash + input.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash);
+    }
+
+    function normalizeViagogoPrice(rawValue) {
+      if (!Number.isFinite(rawValue)) {
+        return null;
       }
 
-      return 1500 + (numeric % 8) * 450;
+      if (rawValue < 10) {
+        return null;
+      }
+
+      const converted = rawValue <= 500 ? rawValue * VIAGOGO_USD_TO_INR : rawValue;
+      const rounded = roundToNearest50(converted);
+
+      if (rounded < 1000 || rounded > 20000) {
+        return null;
+      }
+
+      return rounded;
+    }
+
+    async function refreshViagogoPrices(force = false) {
+      const now = Date.now();
+      const isFresh = now - viagogoPriceFetchedAt < VIAGOGO_PRICE_CACHE_MS;
+      if (!force && isFresh && viagogoPrices.length > 0) {
+        return;
+      }
+
+      try {
+        const response = await fetch(toViagogoProxyUrl(VIAGOGO_EVENT_URL), {
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error(`Viagogo price request failed (${response.status})`);
+        }
+
+        const text = await response.text();
+        const matches = [...text.matchAll(/(?:US)?\$\s*([0-9][0-9,]*(?:\.\d+)?)/g)];
+        const parsed = matches
+          .map((item) => Number(item[1].replace(/,/g, "")))
+          .map((value) => normalizeViagogoPrice(value))
+          .filter((value) => Number.isFinite(value));
+
+        const deduped = [...new Set(parsed)].sort((a, b) => a - b);
+        if (deduped.length === 0) {
+          throw new Error("No seat prices found in Viagogo page response");
+        }
+
+        viagogoPrices = deduped.slice(0, 60);
+        viagogoPriceFetchedAt = now;
+      } catch (error) {
+        console.error("[price] Viagogo price sync skipped:", error.message);
+      }
+    }
+
+    function getTicketPrice(idText) {
+      if (viagogoPrices.length > 0) {
+        const index = stableHash(idText) % viagogoPrices.length;
+        return viagogoPrices[index];
+      }
+
+      const numeric = Number.parseInt(String(idText).replace(/\D/g, ""), 10);
+      if (Number.isNaN(numeric)) {
+        return 2500;
+      }
+
+      return 1800 + (numeric % 8) * 450;
     }
 
     function mapApiEvent(apiEvent) {
@@ -1166,18 +1200,13 @@
       const city = cityFilter.value;
       const date = dateFilter.value;
       const price = priceFilter.value;
-      const search = mainSearch.value.toLowerCase().trim();
 
       const filtered = allEvents.filter((event) => {
         const matchCity = city === "all" || event.city === city;
         const matchDate = date === "all" || event.dateKey === date;
         const matchPrice = price === "all" || event.price <= Number(price);
-        const matchSearch =
-          event.title.toLowerCase().includes(search) ||
-          event.city.toLowerCase().includes(search) ||
-          event.stadium.toLowerCase().includes(search);
 
-        return matchCity && matchDate && matchPrice && matchSearch;
+        return matchCity && matchDate && matchPrice;
       });
 
       events = filtered;
@@ -1188,7 +1217,7 @@
           <div class="event-card">
             <div class="event-content">
               <h3>No matches found</h3>
-              <div class="meta">Try changing city, date, price, or search filters.</div>
+              <div class="meta">Try changing city, date, or price filters.</div>
               <span class="event-status status-completed">No results</span>
             </div>
           </div>
@@ -1358,6 +1387,8 @@
 
     async function loadMatches(showSuccessToast = false) {
       try {
+        await refreshViagogoPrices();
+
         const currentYear = new Date().getFullYear();
         const seasons = [currentYear, currentYear - 1];
         const responses = await Promise.all(seasons.map((season) => fetchSeasonMatches(season)));
@@ -1385,10 +1416,17 @@
         }
 
         allEvents = mappedEvents;
-        updateApiStatus("Live IPL data connected. Showing upcoming and running matches only.");
+        if (viagogoPrices.length > 0) {
+          updateApiStatus("Live IPL data connected with Viagogo-linked seat pricing. Showing upcoming and running matches only.");
+        } else {
+          updateApiStatus("Live IPL data connected. Showing upcoming and running matches only.");
+        }
         updateLastUpdated();
       } catch (error) {
-        allEvents = [...fallbackEvents];
+        allEvents = fallbackEvents.map((event) => ({
+          ...event,
+          price: getTicketPrice(event.id)
+        }));
         updateApiStatus("Live API unavailable right now. Showing cached IPL schedule.");
         console.error(error);
       }
@@ -1406,7 +1444,6 @@
     cityFilter.addEventListener("change", renderEvents);
     dateFilter.addEventListener("change", renderEvents);
     priceFilter.addEventListener("change", renderEvents);
-    mainSearch.addEventListener("input", renderEvents);
 
     refreshMatchesBtn.addEventListener("click", () => {
       loadMatches(true);
