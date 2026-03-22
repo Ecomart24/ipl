@@ -452,7 +452,7 @@
     .stadium-map {
       width: 100%;
       max-width: 860px;
-      height: 760px;
+      height: 780px;
       margin: 0 auto;
       position: relative;
       transform-origin: center center;
@@ -461,16 +461,20 @@
 
     .stadium-shell {
       position: absolute;
-      inset: 12px;
-      border-radius: 50%;
+      inset: 8px;
       background: #eceff4;
       border: 4px solid #d1d5db;
       box-shadow: inset 0 0 0 3px #eff2f7;
+      clip-path: polygon(
+        12% 8%, 28% 2%, 50% 0%, 73% 3%, 88% 10%,
+        97% 26%, 99% 48%, 97% 74%, 88% 90%, 73% 97%,
+        50% 100%, 27% 97%, 12% 90%, 3% 74%, 1% 48%, 3% 26%
+      );
     }
 
     .stadium-track {
       position: absolute;
-      inset: 94px;
+      inset: 84px;
       border-radius: 50%;
       background: #f3f4f6;
       border: 2px solid #dde0e5;
@@ -479,7 +483,7 @@
 
     .field {
       position: absolute;
-      inset: 145px;
+      inset: 156px;
       border-radius: 50%;
       background: #4f8f34;
       box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.45);
@@ -1559,97 +1563,73 @@
 
     function renderSeats() {
       const centerX = 430;
-      const centerY = 380;
-      const rows = ["A", "B", "C", "D", "E", "F"];
+      const centerY = 394;
       const seatMarkup = [];
       const numberMarkup = [];
       const badgeMarkup = [];
-      const standardOrder = [];
+      const arcStart = 120;
+      const arcEnd = 420;
+      const arcSpan = arcEnd - arcStart;
+      const laneSlotCount = 16;
+      const laneConfigs = {
+        AB: { baseRadius: 340, angleOffset: 0, rowNudges: { A: 10, B: -8 }, baseOrder: 0 },
+        CD: { baseRadius: 302, angleOffset: 2.4, rowNudges: { C: 8, D: -7 }, baseOrder: 16 },
+        EF: { baseRadius: 266, angleOffset: -2.4, rowNudges: { E: 8, F: -7 }, baseOrder: 32 }
+      };
 
-      for (let seatNo = 1; seatNo <= 8; seatNo += 1) {
-        rows.forEach((row) => {
-          standardOrder.push(`${row}${seatNo}`);
-        });
-      }
-
-      function angleOnMainRing(index, total) {
-        const segment1Start = -158;
-        const segment1End = 68;
-        const segment2Start = 112;
-        const segment2End = 202;
-        const segment1Span = segment1End - segment1Start;
-        const segment2Span = segment2End - segment2Start;
-        const allSpan = segment1Span + segment2Span;
-        const progress = total <= 1 ? 0 : index / (total - 1);
-        const segment1Ratio = segment1Span / allSpan;
-
-        if (progress <= segment1Ratio) {
-          const ratio = progress / segment1Ratio;
-          return segment1Start + ratio * segment1Span;
-        }
-
-        const ratio = (progress - segment1Ratio) / (1 - segment1Ratio);
-        return segment2Start + ratio * segment2Span;
-      }
-
-      function getSeatLayout(seat) {
-        if (seat.grandstand) {
-          const index = clamp(Number.parseInt(seat.id.replace("GS", ""), 10) - 1, 0, 11);
-          const gsRow = index < 6 ? 0 : 1;
-          const gsCol = index % 6;
-          const start = 76;
-          const span = 30;
-          const step = span / 5;
-          const angle = start + gsCol * step + (gsRow === 1 ? 1.6 : 0);
-          const radius = gsRow === 0 ? 398 : 374;
-          return {
-            angle,
-            radius
-          };
-        }
-
-        const row = seat.id.charAt(0);
-        const rowIndex = Math.max(0, rows.indexOf(row));
-        const standardIndex = Math.max(0, standardOrder.indexOf(seat.id));
-        const baseAngle = angleOnMainRing(standardIndex, standardOrder.length);
-        const rowRadii = [386, 372, 358, 344, 330, 316];
-        const wobble = standardIndex % 2 === 0 ? 2 : -2;
+      function getStandardLayout(seatId) {
+        const row = seatId.charAt(0);
+        const seatNum = clamp(Number.parseInt(seatId.slice(1), 10), 1, 8);
+        const laneKey = row === "A" || row === "B"
+          ? "AB"
+          : row === "C" || row === "D"
+            ? "CD"
+            : "EF";
+        const lane = laneConfigs[laneKey];
+        const rowShift = row === "A" || row === "C" || row === "E" ? 0 : 1;
+        const slot = (seatNum - 1) * 2 + rowShift;
+        const slotRatio = slot / (laneSlotCount - 1);
+        const angle = arcStart + slotRatio * arcSpan + lane.angleOffset;
         return {
-          angle: baseAngle + rowIndex * 0.6,
-          radius: rowRadii[rowIndex] + wobble
+          angle,
+          radius: lane.baseRadius + (lane.rowNudges[row] || 0),
+          order: lane.baseOrder + slot
+        };
+      }
+
+      function getGrandstandLayout(seatId) {
+        const index = clamp(Number.parseInt(seatId.replace("GS", ""), 10) - 1, 0, 11);
+        const row = Math.floor(index / 6);
+        const col = index % 6;
+        const gsStart = 74;
+        const gsSpan = 32;
+        const gsStep = gsSpan / 5;
+        return {
+          angle: gsStart + col * gsStep + (row === 0 ? -1 : 1),
+          radius: row === 0 ? 346 : 322,
+          order: 100 + index
         };
       }
 
       seatData.forEach((seat) => {
-        const { angle, radius } = getSeatLayout(seat);
+        const layout = seat.grandstand ? getGrandstandLayout(seat.id) : getStandardLayout(seat.id);
+        const { angle, radius, order } = layout;
         const rad = (angle * Math.PI) / 180;
         const x = centerX + radius * Math.cos(rad);
         const y = centerY + radius * Math.sin(rad);
-        const standardIndex = standardOrder.indexOf(seat.id);
-        const gsIndex = seat.grandstand
-          ? clamp(Number.parseInt(seat.id.replace("GS", ""), 10) - 1, 0, 11)
-          : -1;
-        const badgeRadius = radius + (seat.grandstand ? 34 : 32);
+        const badgeRadius = radius + (seat.grandstand ? 44 : 38);
         const bx = centerX + badgeRadius * Math.cos(rad);
         const by = centerY + badgeRadius * Math.sin(rad);
         const isSelected = selectedSeats.includes(seat.id);
         const isHovered = hoveredSeatId === seat.id;
         const leftCount = seat.booked ? 0 : 1 + (stableHash(`${seat.id}:${currentEvent?.id || "match"}:left`) % 10);
-        const showPersistentBadge = seat.grandstand
-          ? gsIndex % 3 === 0
-          : standardIndex >= 0 && standardIndex % 6 === 0;
+        const showPersistentBadge = seat.grandstand ? order % 3 === 0 : order % 5 === 0;
 
         let classes = "stadium-seat ";
-        if (seat.grandstand) {
-          classes += "grandstand ";
-        }
-        if (seat.booked) {
-          classes += "booked";
-        } else if (isSelected) {
-          classes += "selected";
-        } else {
-          classes += "available";
-        }
+        if (seat.grandstand) classes += "grandstand ";
+        if (seat.booked) classes += "booked";
+        else if (isSelected) classes += "selected";
+        else classes += "available";
 
         seatMarkup.push(`
           <button
@@ -1662,7 +1642,7 @@
             title="${seat.id} - ${formatInrCompact(seat.price)}"
           >
             <span class="seat-content" style="transform: rotate(${-(angle + 90)}deg);">
-              <span class="seat-id">${seat.id}</span>
+              <span class="seat-id">${seat.grandstand ? "GS" : seat.id.charAt(0)}</span>
             </span>
           </button>
         `);
@@ -1678,10 +1658,13 @@
       });
 
       let tile = 1;
+      const numberArcStart = 126;
+      const numberArcEnd = 414;
+      const numberArcSpan = numberArcEnd - numberArcStart;
       for (let i = 0; i < 29; i += 1) {
-        const indexFloat = Math.round((i / 28) * (standardOrder.length - 1));
-        const angle = angleOnMainRing(indexFloat, standardOrder.length);
-        const radius = 352;
+        const t = i / 28;
+        const angle = numberArcStart + t * numberArcSpan;
+        const radius = 288;
         const rad = (angle * Math.PI) / 180;
         const x = centerX + radius * Math.cos(rad);
         const y = centerY + radius * Math.sin(rad);
@@ -1690,10 +1673,10 @@
       }
 
       let tile2 = 30;
-      const gridStartX = 580;
-      const gridStartY = 646;
-      const gapX = 24;
-      const gapY = 22;
+      const gridStartX = 584;
+      const gridStartY = 642;
+      const gapX = 22;
+      const gapY = 20;
       for (let r = 0; r < 4; r += 1) {
         for (let c = 0; c < 7; c += 1) {
           if (tile2 > 57) break;
