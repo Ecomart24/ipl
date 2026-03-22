@@ -533,13 +533,13 @@
       transform-origin: center center;
       text-align: center;
       padding: 4px 5px;
-      width: 78px;
-      height: 52px;
+      width: 74px;
+      height: 50px;
     }
 
     .stadium-seat.grandstand {
-      width: 74px;
-      height: 46px;
+      width: 70px;
+      height: 44px;
     }
 
     .stadium-seat .seat-id {
@@ -581,8 +581,8 @@
 
     .price-tag {
       position: absolute;
-      min-width: 104px;
-      padding: 7px 9px 6px;
+      min-width: 98px;
+      padding: 6px 8px 5px;
       border-radius: 12px;
       border: 1px solid #e3e6ed;
       background: #ffffff;
@@ -594,7 +594,7 @@
 
     .price-tag strong {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 900;
       color: #0f172a;
       line-height: 1.05;
@@ -780,13 +780,13 @@
       }
 
       .stadium-seat {
-        width: 62px;
-        height: 44px;
+        width: 58px;
+        height: 40px;
       }
 
       .stadium-seat.grandstand {
-        width: 56px;
-        height: 36px;
+        width: 54px;
+        height: 34px;
       }
 
       .number-tile {
@@ -1564,32 +1564,59 @@
       const seatMarkup = [];
       const numberMarkup = [];
       const badgeMarkup = [];
+      const standardOrder = [];
+
+      for (let seatNo = 1; seatNo <= 8; seatNo += 1) {
+        rows.forEach((row) => {
+          standardOrder.push(`${row}${seatNo}`);
+        });
+      }
+
+      function angleOnMainRing(index, total) {
+        const segment1Start = -158;
+        const segment1End = 68;
+        const segment2Start = 112;
+        const segment2End = 202;
+        const segment1Span = segment1End - segment1Start;
+        const segment2Span = segment2End - segment2Start;
+        const allSpan = segment1Span + segment2Span;
+        const progress = total <= 1 ? 0 : index / (total - 1);
+        const segment1Ratio = segment1Span / allSpan;
+
+        if (progress <= segment1Ratio) {
+          const ratio = progress / segment1Ratio;
+          return segment1Start + ratio * segment1Span;
+        }
+
+        const ratio = (progress - segment1Ratio) / (1 - segment1Ratio);
+        return segment2Start + ratio * segment2Span;
+      }
 
       function getSeatLayout(seat) {
         if (seat.grandstand) {
           const index = clamp(Number.parseInt(seat.id.replace("GS", ""), 10) - 1, 0, 11);
-          const start = 206;
-          const span = 126;
-          const step = span / 11;
-          const angle = start + index * step;
-          const wobble = index % 2 === 0 ? 3 : -3;
+          const gsRow = index < 6 ? 0 : 1;
+          const gsCol = index % 6;
+          const start = 76;
+          const span = 30;
+          const step = span / 5;
+          const angle = start + gsCol * step + (gsRow === 1 ? 1.6 : 0);
+          const radius = gsRow === 0 ? 398 : 374;
           return {
             angle,
-            radius: 392 + wobble
+            radius
           };
         }
 
         const row = seat.id.charAt(0);
-        const seatNo = clamp(Number.parseInt(seat.id.slice(1), 10) - 1, 0, 7);
         const rowIndex = Math.max(0, rows.indexOf(row));
-        const angleStart = -150;
-        const angleSpan = 300;
-        const step = angleSpan / 7;
-        const rowRadii = [382, 368, 354, 340, 326, 312];
-        const rowOffsets = [0, 0.8, 1.6, 2.4, 3.2, 4];
+        const standardIndex = Math.max(0, standardOrder.indexOf(seat.id));
+        const baseAngle = angleOnMainRing(standardIndex, standardOrder.length);
+        const rowRadii = [386, 372, 358, 344, 330, 316];
+        const wobble = standardIndex % 2 === 0 ? 2 : -2;
         return {
-          angle: angleStart + seatNo * step + rowOffsets[rowIndex],
-          radius: rowRadii[rowIndex]
+          angle: baseAngle + rowIndex * 0.6,
+          radius: rowRadii[rowIndex] + wobble
         };
       }
 
@@ -1598,15 +1625,19 @@
         const rad = (angle * Math.PI) / 180;
         const x = centerX + radius * Math.cos(rad);
         const y = centerY + radius * Math.sin(rad);
-        const rowCode = seat.grandstand ? "GS" : seat.id.charAt(0);
-        const badgeRadius = radius + (seat.grandstand ? 44 : 40);
+        const standardIndex = standardOrder.indexOf(seat.id);
+        const gsIndex = seat.grandstand
+          ? clamp(Number.parseInt(seat.id.replace("GS", ""), 10) - 1, 0, 11)
+          : -1;
+        const badgeRadius = radius + (seat.grandstand ? 34 : 32);
         const bx = centerX + badgeRadius * Math.cos(rad);
         const by = centerY + badgeRadius * Math.sin(rad);
         const isSelected = selectedSeats.includes(seat.id);
         const isHovered = hoveredSeatId === seat.id;
         const leftCount = seat.booked ? 0 : 1 + (stableHash(`${seat.id}:${currentEvent?.id || "match"}:left`) % 10);
-        const showPersistentBadge =
-          seat.grandstand || rowCode === "A" || rowCode === "C" || rowCode === "E";
+        const showPersistentBadge = seat.grandstand
+          ? gsIndex % 3 === 0
+          : standardIndex >= 0 && standardIndex % 6 === 0;
 
         let classes = "stadium-seat ";
         if (seat.grandstand) {
@@ -1648,8 +1679,9 @@
 
       let tile = 1;
       for (let i = 0; i < 29; i += 1) {
-        const angle = -155 + (i * 270) / 28;
-        const radius = 342;
+        const indexFloat = Math.round((i / 28) * (standardOrder.length - 1));
+        const angle = angleOnMainRing(indexFloat, standardOrder.length);
+        const radius = 352;
         const rad = (angle * Math.PI) / 180;
         const x = centerX + radius * Math.cos(rad);
         const y = centerY + radius * Math.sin(rad);
@@ -1658,8 +1690,8 @@
       }
 
       let tile2 = 30;
-      const gridStartX = 572;
-      const gridStartY = 640;
+      const gridStartX = 580;
+      const gridStartY = 646;
       const gapX = 24;
       const gapY = 22;
       for (let r = 0; r < 4; r += 1) {
