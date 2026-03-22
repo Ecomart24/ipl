@@ -1,0 +1,1434 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPL Ticket Booking</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+
+    .top-strip {
+      background: #000;
+      color: #fff;
+      text-align: center;
+      font-size: 13px;
+      padding: 10px 12px;
+    }
+
+    .hero {
+      background: linear-gradient(90deg, #0b0b0b 0%, #1b3500 100%);
+      color: white;
+      padding-bottom: 30px;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 1180px;
+      margin: auto;
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 0;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      color: #fff;
+    }
+
+    .logo span {
+      color: #8bc34a;
+    }
+
+    .search-box {
+      flex: 1;
+      max-width: 420px;
+      background: white;
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .search-box input {
+      border: none;
+      outline: none;
+      width: 100%;
+      font-size: 15px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      color: white;
+      font-weight: 600;
+      flex-wrap: wrap;
+    }
+
+    .user-icon {
+      width: 36px;
+      height: 36px;
+      background: #8bc34a;
+      border-radius: 50%;
+    }
+
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr 390px;
+      gap: 30px;
+      align-items: center;
+      padding-top: 30px;
+    }
+
+    .hero-left h1 {
+      font-size: 64px;
+      line-height: 1.05;
+      font-weight: 800;
+      max-width: 520px;
+    }
+
+    .likes-badge {
+      margin-top: 22px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .hero-right img {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      border-radius: 18px;
+      display: block;
+    }
+
+    .main-section {
+      margin-top: -10px;
+      padding-bottom: 40px;
+    }
+
+    .viewed-box {
+      background: #dbeafe;
+      color: #2563eb;
+      border-radius: 14px;
+      padding: 18px 20px;
+      font-size: 18px;
+      margin: 20px 0 18px;
+      font-weight: 500;
+    }
+
+    .recent-box {
+      background: #e5e7eb;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .recent-title {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .recent-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 70px 1fr 220px;
+      gap: 16px;
+      align-items: center;
+      border: 1px solid #e5e7eb;
+    }
+
+    .date-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      text-align: center;
+      padding: 10px 4px;
+      min-width: 64px;
+    }
+
+    .date-box .month {
+      color: #6b7280;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .date-box .day {
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1;
+      margin: 2px 0;
+    }
+
+    .date-box .weekday {
+      color: #6b7280;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .event-info h3 {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .event-meta {
+      color: #6b7280;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .ticket-tag {
+      display: inline-block;
+      background: #dbeafe;
+      color: #2563eb;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .event-thumb img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 14px;
+    }
+
+    .filters {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .filter-btn, .filter-select {
+      background: white;
+      border: 1px solid #d1d5db;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .loc-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: #111827;
+      color: white;
+      font-size: 18px;
+    }
+
+    .section-count {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 14px 0 18px;
+    }
+
+    .events-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .event-card {
+      background: white;
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .event-content h3 {
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+
+    .event-content .meta {
+      color: #6b7280;
+      margin-bottom: 9px;
+      font-size: 15px;
+    }
+    .event-status {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .status-upcoming {
+      background: #dbeafe;
+      color: #2563eb;
+    }
+
+    .status-live {
+      background: #ffe4e6;
+      color: #e11d48;
+    }
+
+    .status-completed {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .live-dashboard {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .dash-chip {
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: #374151;
+      font-weight: 600;
+    }
+
+    .dash-chip strong {
+      margin-right: 6px;
+      color: #111827;
+    }
+
+    .dash-chip.live {
+      border-color: #fecdd3;
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .dash-refresh {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      background: #111827;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .dash-refresh:hover {
+      background: #1f2937;
+    }
+
+    .dash-updated {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .ticket-btn {
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      background: white;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .ticket-btn:hover {
+      background: #111827;
+      color: #fff;
+      border-color: #111827;
+    }
+
+    .booking-panel {
+      margin-top: 30px;
+      background: white;
+      border-radius: 22px;
+      padding: 24px;
+      border: 1px solid #e5e7eb;
+      display: none;
+    }
+
+    .booking-panel.active {
+      display: block;
+    }
+
+    .booking-top {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+    }
+
+    .panel-title {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    .seat-legend {
+      display: flex;
+      gap: 14px;
+      margin: 12px 0 18px;
+      flex-wrap: wrap;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .seat-legend span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-box {
+      width: 16px;
+      height: 16px;
+      border-radius: 5px;
+    }
+
+    .available-box {
+      background: #bbf7d0;
+    }
+
+    .selected-box {
+      background: #93c5fd;
+    }
+
+    .booked-box {
+      background: #fecaca;
+    }
+
+    .screen {
+      background: #111827;
+      color: white;
+      text-align: center;
+      padding: 12px;
+      border-radius: 999px;
+      margin-bottom: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .seat-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 10px;
+    }
+
+    .seat {
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .seat.available {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .seat.booked {
+      background: #fee2e2;
+      color: #991b1b;
+      cursor: not-allowed;
+    }
+
+    .seat.selected {
+      background: #bfdbfe;
+      color: #1d4ed8;
+      border: 2px solid #2563eb;
+    }
+
+    .checkout-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 18px;
+      background: #f9fafb;
+      height: fit-content;
+    }
+
+    .checkout-box h3 {
+      margin-bottom: 14px;
+      font-size: 22px;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      color: #4b5563;
+      font-size: 15px;
+    }
+
+    .summary-line.total {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #d1d5db;
+      font-size: 18px;
+      color: #111827;
+      font-weight: 800;
+    }
+
+    .form-group {
+      margin-top: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 7px;
+      color: #374151;
+      font-weight: 600;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .pay-btn {
+      width: 100%;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      background: #111827;
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .pay-btn:hover {
+      background: #2563eb;
+    }
+
+    .note {
+      margin-top: 12px;
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: #111827;
+      color: white;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px);
+      transition: 0.3s;
+      z-index: 999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 992px) {
+      .hero-content,
+      .booking-top,
+      .recent-card {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-left h1 {
+        font-size: 48px;
+      }
+
+      .event-card {
+        grid-template-columns: 72px 1fr;
+      }
+
+      .ticket-btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .logo {
+        font-size: 38px;
+      }
+
+      .hero-left h1 {
+        font-size: 38px;
+      }
+
+      .seat-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .event-card,
+      .recent-card {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-strip">
+    We're the world's largest secondary marketplace for tickets to live events. Prices are set by sellers and may be below or above face value.
+  </div>
+
+  <section class="hero">
+    <div class="container">
+      <div class="navbar">
+        <div class="logo">via<span>gogo</span></div>
+
+        <div class="search-box">
+          <span>Search</span>
+          <input type="text" id="mainSearch" placeholder="Search events, artists, teams and more" />
+        </div>
+
+        <div class="nav-links">
+          <a href="#">Explore</a>
+          <a href="#">Sell</a>
+          <a href="#">Favourites</a>
+          <a href="#">My Tickets</a>
+          <a href="#">Sign In</a>
+          <div class="user-icon"></div>
+        </div>
+      </div>
+
+      <div class="hero-content">
+        <div class="hero-left">
+          <h1>Indian Premier League Tickets</h1>
+          <div class="likes-badge">10.7K likes</div>
+        </div>
+
+        <div class="hero-right">
+          <img src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1200&q=80" alt="Cricket Stadium" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="main-section">
+    <div class="container">
+            <div class="viewed-box" id="apiStatusBar">
+        Loading latest IPL matches...
+      </div>
+
+      <div class="recent-box">
+        <div class="recent-title">Featured match</div>
+        <div class="recent-card" id="featuredMatchCard">
+          <div class="date-box">
+            <div class="month" id="featuredMonth">--</div>
+            <div class="day" id="featuredDay">--</div>
+            <div class="weekday" id="featuredWeekday">---</div>
+          </div>
+
+          <div class="event-info">
+            <h3 id="featuredTitle">Match details loading</h3>
+            <div class="event-meta" id="featuredMeta">Please wait while we sync IPL schedule.</div>
+            <span class="ticket-tag" id="featuredTag">Live API</span>
+          </div>
+
+          <div class="event-thumb">
+            <img id="featuredThumb" src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=900&q=80" alt="Featured match" />
+          </div>
+        </div>
+      </div>
+
+      <div class="live-dashboard">
+        <div class="dash-chip"><strong id="upcomingCount">0</strong>upcoming</div>
+        <div class="dash-chip live"><strong id="liveCount">0</strong>live</div>
+        <div class="dash-chip"><strong id="completedCount">0</strong>completed</div>
+        <button class="dash-refresh" id="refreshMatchesBtn" type="button">Refresh now</button>
+        <span class="dash-updated" id="lastUpdatedText">Not updated yet</span>
+      </div>
+
+      <div class="filters">
+        <button class="loc-btn" type="button" aria-label="Location">L</button>
+
+        <select class="filter-select" id="cityFilter">
+          <option value="all">All cities</option>
+        </select>
+
+        <select class="filter-select" id="dateFilter">
+          <option value="all">All dates</option>
+        </select>
+
+        <select class="filter-select" id="priceFilter">
+          <option value="all">Price</option>
+          <option value="2000">Under INR 2000</option>
+          <option value="4000">Under INR 4000</option>
+          <option value="6000">Under INR 6000</option>
+        </select>
+      </div>
+
+      <div class="section-count"><span id="eventCount">0</span> matches available</div>
+
+      <div class="events-list" id="eventsList"></div>
+
+      <div class="booking-panel" id="bookingPanel">
+        <div class="booking-top">
+          <div>
+            <h2 class="panel-title" id="bookingTitle">Book Tickets</h2>
+            <p id="bookingMeta" style="color:#6b7280; margin-bottom: 10px;"></p>
+
+            <div class="seat-legend">
+              <span><i class="legend-box available-box"></i> Available</span>
+              <span><i class="legend-box selected-box"></i> Selected</span>
+              <span><i class="legend-box booked-box"></i> Booked</span>
+            </div>
+
+            <div class="screen">STADIUM VIEW</div>
+            <div class="seat-grid" id="seatGrid"></div>
+          </div>
+
+          <div class="checkout-box">
+            <h3>Checkout</h3>
+
+            <div class="summary-line">
+              <span>Match</span>
+              <span id="summaryMatch">-</span>
+            </div>
+
+            <div class="summary-line">
+              <span>Selected Seats</span>
+              <span id="summarySeats">0</span>
+            </div>
+
+            <div class="summary-line">
+              <span>Seat Numbers</span>
+              <span id="summarySeatNames">-</span>
+            </div>
+
+            <div class="summary-line">
+              <span>Price per Seat</span>
+              <span id="summaryPrice">INR 0</span>
+            </div>
+
+            <div class="summary-line total">
+              <span>Total</span>
+              <span id="summaryTotal">INR 0</span>
+            </div>
+
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="buyerName" placeholder="Enter your name" />
+            </div>
+
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="buyerEmail" placeholder="Enter your email" />
+            </div>
+
+            <div class="form-group">
+              <label>Payment Method</label>
+              <select id="paymentMethod">
+                <option value="razorpay">Razorpay</option>
+                <option value="upi">UPI</option>
+                <option value="card">Card</option>
+              </select>
+            </div>
+
+            <button class="pay-btn" id="payNowBtn">Proceed to Pay</button>
+            <p class="note">
+              This is demo frontend logic. For real payment gateway, connect Razorpay or another payment service from backend.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+    <script>
+    const API_BASE_URL = "https://www.thesportsdb.com/api/v1/json/3";
+    const IPL_LEAGUE_ID = "4460";
+    const REFRESH_INTERVAL_MS = 120000;
+
+    const fallbackEvents = [
+      {
+        id: "fallback-1",
+        month: "Mar",
+        day: "28",
+        weekday: "Sat",
+        title: "Royal Challengers Bengaluru vs Sunrisers Hyderabad",
+        time: "7:30 PM",
+        city: "Bengaluru",
+        location: "India",
+        stadium: "M. Chinnaswamy Stadium",
+        status: "Upcoming",
+        statusClass: "status-upcoming",
+        statusType: "upcoming",
+        price: 1800,
+        dateKey: "2026-03-28",
+        sortTime: Date.parse("2026-03-28T14:00:00Z"),
+        thumb: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: "fallback-2",
+        month: "Mar",
+        day: "29",
+        weekday: "Sun",
+        title: "Mumbai Indians vs Kolkata Knight Riders",
+        time: "7:30 PM",
+        city: "Mumbai",
+        location: "Maharashtra, India",
+        stadium: "Wankhede Stadium",
+        status: "Upcoming",
+        statusClass: "status-upcoming",
+        statusType: "upcoming",
+        price: 2500,
+        dateKey: "2026-03-29",
+        sortTime: Date.parse("2026-03-29T14:00:00Z"),
+        thumb: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1200&q=80"
+      },
+      {
+        id: "fallback-3",
+        month: "Mar",
+        day: "30",
+        weekday: "Mon",
+        title: "Rajasthan Royals vs Chennai Super Kings",
+        time: "7:30 PM",
+        city: "Guwahati",
+        location: "Assam, India",
+        stadium: "ACA Stadium",
+        status: "Upcoming",
+        statusClass: "status-upcoming",
+        statusType: "upcoming",
+        price: 4200,
+        dateKey: "2026-03-30",
+        sortTime: Date.parse("2026-03-30T14:00:00Z"),
+        thumb: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: "fallback-4",
+        month: "Mar",
+        day: "31",
+        weekday: "Tue",
+        title: "Punjab Kings vs Gujarat Titans",
+        time: "7:30 PM",
+        city: "Mullanpur",
+        location: "Punjab, India",
+        stadium: "Maharaja Yadavindra Singh Cricket Stadium",
+        status: "Upcoming",
+        statusClass: "status-upcoming",
+        statusType: "upcoming",
+        price: 3200,
+        dateKey: "2026-03-31",
+        sortTime: Date.parse("2026-03-31T14:00:00Z"),
+        thumb: "https://images.unsplash.com/photo-1508098682722-e99c643e7485?auto=format&fit=crop&w=900&q=80"
+      },
+      {
+        id: "fallback-5",
+        month: "Apr",
+        day: "01",
+        weekday: "Wed",
+        title: "Delhi Capitals vs Lucknow Super Giants",
+        time: "7:30 PM",
+        city: "Delhi",
+        location: "India",
+        stadium: "Arun Jaitley Stadium",
+        status: "Upcoming",
+        statusClass: "status-upcoming",
+        statusType: "upcoming",
+        price: 1600,
+        dateKey: "2026-04-01",
+        sortTime: Date.parse("2026-04-01T14:00:00Z"),
+        thumb: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=900&q=80"
+      }
+    ];
+
+    const eventsList = document.getElementById("eventsList");
+    const eventCount = document.getElementById("eventCount");
+    const cityFilter = document.getElementById("cityFilter");
+    const dateFilter = document.getElementById("dateFilter");
+    const priceFilter = document.getElementById("priceFilter");
+    const mainSearch = document.getElementById("mainSearch");
+
+    const apiStatusBar = document.getElementById("apiStatusBar");
+    const upcomingCount = document.getElementById("upcomingCount");
+    const liveCount = document.getElementById("liveCount");
+    const completedCount = document.getElementById("completedCount");
+    const refreshMatchesBtn = document.getElementById("refreshMatchesBtn");
+    const lastUpdatedText = document.getElementById("lastUpdatedText");
+
+    const featuredMonth = document.getElementById("featuredMonth");
+    const featuredDay = document.getElementById("featuredDay");
+    const featuredWeekday = document.getElementById("featuredWeekday");
+    const featuredTitle = document.getElementById("featuredTitle");
+    const featuredMeta = document.getElementById("featuredMeta");
+    const featuredTag = document.getElementById("featuredTag");
+    const featuredThumb = document.getElementById("featuredThumb");
+
+    const bookingPanel = document.getElementById("bookingPanel");
+    const bookingTitle = document.getElementById("bookingTitle");
+    const bookingMeta = document.getElementById("bookingMeta");
+    const seatGrid = document.getElementById("seatGrid");
+
+    const summaryMatch = document.getElementById("summaryMatch");
+    const summarySeats = document.getElementById("summarySeats");
+    const summarySeatNames = document.getElementById("summarySeatNames");
+    const summaryPrice = document.getElementById("summaryPrice");
+    const summaryTotal = document.getElementById("summaryTotal");
+
+    const buyerName = document.getElementById("buyerName");
+    const buyerEmail = document.getElementById("buyerEmail");
+    const paymentMethod = document.getElementById("paymentMethod");
+    const payNowBtn = document.getElementById("payNowBtn");
+    const toast = document.getElementById("toast");
+
+    let allEvents = [...fallbackEvents];
+    let events = [...fallbackEvents];
+    let currentEvent = null;
+    let selectedSeats = [];
+    let seatData = [];
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2500);
+    }
+
+    function statusFromApi(rawStatus) {
+      const status = (rawStatus || "").toLowerCase();
+
+      if (
+        status.includes("live") ||
+        status.includes("progress") ||
+        status.includes("in play") ||
+        status.includes("innings")
+      ) {
+        return { type: "live", className: "status-live", label: "Running now" };
+      }
+
+      if (
+        status.includes("finish") ||
+        status.includes("completed") ||
+        status.includes("result") ||
+        status.includes("abandon") ||
+        status.includes("cancel")
+      ) {
+        return { type: "completed", className: "status-completed", label: "Completed" };
+      }
+
+      return { type: "upcoming", className: "status-upcoming", label: "Upcoming" };
+    }
+
+    function formatTimeTo12Hour(timeText) {
+      if (!timeText) {
+        return "TBA";
+      }
+
+      const [hourText, minuteText] = timeText.split(":");
+      const hour24 = Number(hourText);
+      const minute = minuteText || "00";
+
+      if (Number.isNaN(hour24)) {
+        return "TBA";
+      }
+
+      const suffix = hour24 >= 12 ? "PM" : "AM";
+      const hour12 = hour24 % 12 || 12;
+      return `${hour12}:${minute} ${suffix}`;
+    }
+
+    function toTimestamp(dateText, timeText, timestampText) {
+      let parsed = Number.NaN;
+
+      if (timestampText) {
+        parsed = Date.parse(`${timestampText}Z`);
+        if (Number.isNaN(parsed)) {
+          parsed = Date.parse(timestampText);
+        }
+      }
+
+      if (Number.isNaN(parsed) && dateText) {
+        parsed = Date.parse(`${dateText}T${timeText || "00:00:00"}Z`);
+      }
+
+      return Number.isNaN(parsed) ? Date.now() : parsed;
+    }
+
+    function toDateParts(dateText) {
+      const date = new Date(`${dateText}T00:00:00`);
+
+      if (Number.isNaN(date.getTime())) {
+        return { month: "--", day: "--", weekday: "---" };
+      }
+
+      return {
+        month: date.toLocaleString("en-US", { month: "short" }),
+        day: String(date.getDate()).padStart(2, "0"),
+        weekday: date.toLocaleString("en-US", { weekday: "short" })
+      };
+    }
+
+    function getTicketPrice(idText) {
+      const numeric = Number.parseInt(idText, 10);
+      if (Number.isNaN(numeric)) {
+        return 2000;
+      }
+
+      return 1500 + (numeric % 8) * 450;
+    }
+
+    function mapApiEvent(apiEvent) {
+      const dateKey = apiEvent.dateEventLocal || apiEvent.dateEvent || "";
+      const dateParts = toDateParts(dateKey);
+      const statusInfo = statusFromApi(apiEvent.strStatus);
+      const hasScores = apiEvent.intHomeScore !== null && apiEvent.intAwayScore !== null;
+      const scoreText = hasScores ? `${apiEvent.intHomeScore}-${apiEvent.intAwayScore}` : "";
+      const rawStatus = (apiEvent.strStatus || "").trim();
+      const statusLabel = rawStatus || statusInfo.label;
+      const status = scoreText ? `${statusLabel} | ${scoreText}` : statusLabel;
+
+      return {
+        id: String(apiEvent.idEvent),
+        month: dateParts.month,
+        day: dateParts.day,
+        weekday: dateParts.weekday,
+        title: apiEvent.strEvent || `${apiEvent.strHomeTeam} vs ${apiEvent.strAwayTeam}`,
+        time: formatTimeTo12Hour(apiEvent.strTimeLocal || apiEvent.strTime),
+        city: apiEvent.strCity || "TBA",
+        location: apiEvent.strCountry || "India",
+        stadium: apiEvent.strVenue || "Venue not announced",
+        status,
+        statusClass: statusInfo.className,
+        statusType: statusInfo.type,
+        price: getTicketPrice(apiEvent.idEvent),
+        dateKey,
+        sortTime: toTimestamp(apiEvent.dateEvent, apiEvent.strTime, apiEvent.strTimestamp),
+        thumb: apiEvent.strThumb || apiEvent.strPoster || apiEvent.strBanner || featuredThumb.src
+      };
+    }
+
+    function updateApiStatus(message) {
+      apiStatusBar.textContent = message;
+    }
+
+    function updateLastUpdated() {
+      const nowText = new Date().toLocaleString("en-IN", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      lastUpdatedText.textContent = `Last updated: ${nowText}`;
+    }
+
+    function updateDashboard() {
+      const counts = allEvents.reduce(
+        (acc, event) => {
+          if (event.statusType === "live") {
+            acc.live += 1;
+          } else if (event.statusType === "completed") {
+            acc.completed += 1;
+          } else {
+            acc.upcoming += 1;
+          }
+          return acc;
+        },
+        { upcoming: 0, live: 0, completed: 0 }
+      );
+
+      upcomingCount.textContent = counts.upcoming;
+      liveCount.textContent = counts.live;
+      completedCount.textContent = counts.completed;
+    }
+
+    function getFeaturedMatch() {
+      const live = allEvents
+        .filter((event) => event.statusType === "live")
+        .sort((a, b) => a.sortTime - b.sortTime)[0];
+
+      if (live) {
+        return live;
+      }
+
+      const upcoming = allEvents
+        .filter((event) => event.statusType === "upcoming")
+        .sort((a, b) => a.sortTime - b.sortTime)[0];
+
+      if (upcoming) {
+        return upcoming;
+      }
+
+      return allEvents
+        .filter((event) => event.statusType === "completed")
+        .sort((a, b) => b.sortTime - a.sortTime)[0] || allEvents[0] || null;
+    }
+
+    function renderFeaturedMatch() {
+      const featured = getFeaturedMatch();
+
+      if (!featured) {
+        featuredTitle.textContent = "No match data available";
+        featuredMeta.textContent = "Try refreshing in a moment.";
+        featuredTag.textContent = "No data";
+        return;
+      }
+
+      featuredMonth.textContent = featured.month;
+      featuredDay.textContent = featured.day;
+      featuredWeekday.textContent = featured.weekday;
+      featuredTitle.textContent = featured.title;
+      featuredMeta.textContent = `${featured.time} | ${featured.city}, ${featured.location} | ${featured.stadium}`;
+      featuredTag.textContent = featured.status;
+      featuredThumb.src = featured.thumb;
+    }
+
+    function uniqueSorted(values) {
+      return [...new Set(values)].sort((a, b) => {
+        if (a < b) return -1;
+        if (a > b) return 1;
+        return 0;
+      });
+    }
+
+    function updateSelectOptions(selectElement, options, allLabel, formatLabel) {
+      const previousValue = selectElement.value;
+      selectElement.innerHTML = `<option value="all">${allLabel}</option>` + options
+        .map((optionValue) => `<option value="${optionValue}">${formatLabel(optionValue)}</option>`)
+        .join("");
+
+      const allowedValues = new Set(["all", ...options]);
+      if (allowedValues.has(previousValue)) {
+        selectElement.value = previousValue;
+      }
+    }
+
+    function updateFiltersFromEvents() {
+      const cities = uniqueSorted(allEvents.map((event) => event.city).filter(Boolean));
+      const dates = uniqueSorted(allEvents.map((event) => event.dateKey).filter(Boolean));
+
+      updateSelectOptions(cityFilter, cities, "All cities", (value) => value);
+      updateSelectOptions(dateFilter, dates, "All dates", (value) => {
+        const parts = toDateParts(value);
+        return `${parts.month} ${parts.day}`;
+      });
+    }
+
+    function renderEvents() {
+      const city = cityFilter.value;
+      const date = dateFilter.value;
+      const price = priceFilter.value;
+      const search = mainSearch.value.toLowerCase().trim();
+
+      const filtered = allEvents.filter((event) => {
+        const matchCity = city === "all" || event.city === city;
+        const matchDate = date === "all" || event.dateKey === date;
+        const matchPrice = price === "all" || event.price <= Number(price);
+        const matchSearch =
+          event.title.toLowerCase().includes(search) ||
+          event.city.toLowerCase().includes(search) ||
+          event.stadium.toLowerCase().includes(search);
+
+        return matchCity && matchDate && matchPrice && matchSearch;
+      });
+
+      events = filtered;
+      eventCount.textContent = filtered.length;
+
+      if (filtered.length === 0) {
+        eventsList.innerHTML = `
+          <div class="event-card">
+            <div class="event-content">
+              <h3>No matches found</h3>
+              <div class="meta">Try changing city, date, price, or search filters.</div>
+              <span class="event-status status-completed">No results</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      eventsList.innerHTML = filtered
+        .map(
+          (event) => `
+            <div class="event-card">
+              <div class="date-box">
+                <div class="month">${event.month}</div>
+                <div class="day">${event.day}</div>
+                <div class="weekday">${event.weekday}</div>
+              </div>
+
+              <div class="event-content">
+                <h3>${event.title}</h3>
+                <div class="meta">${event.time} | ${event.city}, ${event.location} | ${event.stadium}</div>
+                <span class="event-status ${event.statusClass}">${event.status}</span>
+              </div>
+
+              <button class="ticket-btn" onclick="openBooking('${event.id}')">See tickets</button>
+            </div>
+          `
+        )
+        .join("");
+    }
+
+    function generateSeats() {
+      seatData = [];
+      const rows = ["A", "B", "C", "D", "E", "F"];
+
+      for (let r = 0; r < rows.length; r += 1) {
+        for (let c = 1; c <= 8; c += 1) {
+          const booked = Math.random() < 0.22;
+          seatData.push({
+            id: `${rows[r]}${c}`,
+            booked
+          });
+        }
+      }
+    }
+
+    function renderSeats() {
+      seatGrid.innerHTML = seatData
+        .map((seat) => {
+          let classes = "seat ";
+          if (seat.booked) {
+            classes += "booked";
+          } else if (selectedSeats.includes(seat.id)) {
+            classes += "selected";
+          } else {
+            classes += "available";
+          }
+
+          return `
+            <div class="${classes}" onclick="toggleSeat('${seat.id}')">
+              ${seat.id}
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function updateSummary() {
+      const count = selectedSeats.length;
+      const price = currentEvent ? currentEvent.price : 0;
+      const total = count * price;
+
+      summaryMatch.textContent = currentEvent ? currentEvent.title : "-";
+      summarySeats.textContent = count;
+      summarySeatNames.textContent = count ? selectedSeats.join(", ") : "-";
+      summaryPrice.textContent = `INR ${price}`;
+      summaryTotal.textContent = `INR ${total}`;
+    }
+
+    function openBooking(id) {
+      currentEvent = allEvents.find((event) => String(event.id) === String(id));
+
+      if (!currentEvent) {
+        showToast("Match not found. Please refresh.");
+        return;
+      }
+
+      selectedSeats = [];
+      generateSeats();
+
+      bookingTitle.textContent = currentEvent.title;
+      bookingMeta.textContent = `${currentEvent.time} | ${currentEvent.city}, ${currentEvent.location} | ${currentEvent.stadium}`;
+      bookingPanel.classList.add("active");
+
+      renderSeats();
+      updateSummary();
+
+      bookingPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      showToast("Select your seats");
+    }
+
+    function toggleSeat(seatId) {
+      const seat = seatData.find((item) => item.id === seatId);
+      if (!seat || seat.booked) {
+        return;
+      }
+
+      if (selectedSeats.includes(seatId)) {
+        selectedSeats = selectedSeats.filter((id) => id !== seatId);
+      } else {
+        selectedSeats.push(seatId);
+      }
+
+      renderSeats();
+      updateSummary();
+    }
+
+    payNowBtn.addEventListener("click", () => {
+      if (!currentEvent) {
+        showToast("Please choose a match first");
+        return;
+      }
+
+      if (selectedSeats.length === 0) {
+        showToast("Please select at least one seat");
+        return;
+      }
+
+      if (buyerName.value.trim() === "") {
+        showToast("Enter your full name");
+        return;
+      }
+
+      if (buyerEmail.value.trim() === "") {
+        showToast("Enter your email");
+        return;
+      }
+
+      const total = selectedSeats.length * currentEvent.price;
+      showToast(`Payment success demo: INR ${total} via ${paymentMethod.value}`);
+
+      setTimeout(() => {
+        alert(
+          "Booking Confirmed!\n\n" +
+            "Match: " +
+            currentEvent.title +
+            "\n" +
+            "Seats: " +
+            selectedSeats.join(", ") +
+            "\n" +
+            "Total: INR " +
+            total +
+            "\n" +
+            "Name: " +
+            buyerName.value +
+            "\n" +
+            "Payment: " +
+            paymentMethod.value
+        );
+      }, 300);
+    });
+
+    async function fetchSeasonMatches(season) {
+      const url = `${API_BASE_URL}/eventsseason.php?id=${IPL_LEAGUE_ID}&s=${season}`;
+      const response = await fetch(url, { cache: "no-store" });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      return Array.isArray(data.events) ? data.events : [];
+    }
+
+    async function loadMatches(showSuccessToast = false) {
+      try {
+        const currentYear = new Date().getFullYear();
+        const seasons = [currentYear, currentYear - 1];
+        const responses = await Promise.all(seasons.map((season) => fetchSeasonMatches(season)));
+
+        const merged = [];
+        const seenIds = new Set();
+
+        responses.flat().forEach((apiEvent) => {
+          if (!apiEvent || seenIds.has(apiEvent.idEvent)) {
+            return;
+          }
+
+          seenIds.add(apiEvent.idEvent);
+          merged.push(apiEvent);
+        });
+
+        const mappedEvents = merged
+          .filter((apiEvent) => apiEvent.strSport === "Cricket" && String(apiEvent.idLeague) === IPL_LEAGUE_ID)
+          .map((apiEvent) => mapApiEvent(apiEvent))
+          .sort((a, b) => a.sortTime - b.sortTime);
+
+        if (mappedEvents.length === 0) {
+          throw new Error("API returned no IPL matches");
+        }
+
+        allEvents = mappedEvents;
+        updateApiStatus("Live IPL data connected. Upcoming, running, and completed matches update automatically.");
+        updateLastUpdated();
+      } catch (error) {
+        allEvents = [...fallbackEvents];
+        updateApiStatus("Live API unavailable right now. Showing cached IPL schedule.");
+        console.error(error);
+      }
+
+      updateFiltersFromEvents();
+      updateDashboard();
+      renderFeaturedMatch();
+      renderEvents();
+
+      if (showSuccessToast) {
+        showToast("Matches refreshed");
+      }
+    }
+
+    cityFilter.addEventListener("change", renderEvents);
+    dateFilter.addEventListener("change", renderEvents);
+    priceFilter.addEventListener("change", renderEvents);
+    mainSearch.addEventListener("input", renderEvents);
+
+    refreshMatchesBtn.addEventListener("click", () => {
+      loadMatches(true);
+    });
+
+    updateFiltersFromEvents();
+    updateDashboard();
+    renderFeaturedMatch();
+    renderEvents();
+
+    loadMatches(false);
+    setInterval(() => {
+      loadMatches(false);
+    }, REFRESH_INTERVAL_MS);
+
+    window.openBooking = openBooking;
+    window.toggleSeat = toggleSeat;
+  </script>
+</body>
+</html>
