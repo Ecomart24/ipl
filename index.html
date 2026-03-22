@@ -360,7 +360,7 @@
 
     .booking-top {
       display: grid;
-      grid-template-columns: 1.55fr 0.95fr;
+      grid-template-columns: 1.5fr 1fr;
       gap: 26px;
     }
 
@@ -551,6 +551,11 @@
       filter: url(#selectedGlow);
     }
 
+    .section-node.focused path {
+      stroke: #213f6f;
+      stroke-width: 4.2px;
+    }
+
     .section-node text {
       font-size: 14px;
       font-weight: 900;
@@ -576,6 +581,14 @@
 
     .price-label {
       filter: url(#priceShadow);
+    }
+
+    .price-link {
+      stroke: #aab4c2;
+      stroke-width: 1.4px;
+      opacity: 0.9;
+      fill: none;
+      vector-effect: non-scaling-stroke;
     }
 
     .price-label rect {
@@ -735,12 +748,215 @@
       padding: 22px;
       background: #f4f5f8;
       height: fit-content;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
     .checkout-box h3 {
-      margin-bottom: 18px;
+      margin-bottom: 0;
       font-size: 22px;
       color: #071631;
+    }
+
+    .pricing-panel {
+      border: 1px solid #d3dbe7;
+      border-radius: 18px;
+      background: #ffffff;
+      padding: 14px;
+    }
+
+    .pricing-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .pricing-head h3 {
+      font-size: 21px;
+      margin: 0;
+    }
+
+    .listing-count-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #d2dae6;
+      background: #eef2f7;
+      color: #364861;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .pricing-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .pricing-controls select {
+      width: 100%;
+      border: 1px solid #cfd7e4;
+      border-radius: 10px;
+      padding: 10px 11px;
+      background: #f8fafe;
+      color: #1f2f4a;
+      font-size: 13px;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .ticket-list {
+      max-height: 470px;
+      overflow: auto;
+      border: 1px solid #e2e8f2;
+      border-radius: 14px;
+      background: #ffffff;
+    }
+
+    .ticket-card {
+      padding: 15px 15px 14px;
+      border-bottom: 1px solid #e9edf4;
+      cursor: pointer;
+      transition: 0.16s ease;
+      background: #ffffff;
+    }
+
+    .ticket-card:last-child {
+      border-bottom: none;
+    }
+
+    .ticket-card:hover,
+    .ticket-card.hovered {
+      background: #f7fafe;
+    }
+
+    .ticket-card.active {
+      background: #eef4ff;
+      box-shadow: inset 0 0 0 2px #24416f;
+    }
+
+    .ticket-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 9px;
+    }
+
+    .ticket-title {
+      font-size: 17px;
+      font-weight: 900;
+      color: #0b1a33;
+      line-height: 1.25;
+    }
+
+    .ticket-price-wrap {
+      text-align: right;
+      min-width: 120px;
+    }
+
+    .ticket-price {
+      font-size: 20px;
+      font-weight: 900;
+      color: #0b1a33;
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+
+    .ticket-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f6c3d;
+    }
+
+    .rating-pill {
+      background: #10a85f;
+      color: #fff;
+      border-radius: 9px;
+      padding: 3px 7px;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .ticket-rowline {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1f2f4a;
+      margin-bottom: 6px;
+    }
+
+    .ticket-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .feature-chip {
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 800;
+      border: 1px solid #d5deeb;
+      color: #445772;
+      background: #f7fafe;
+    }
+
+    .feature-chip.best {
+      color: #1f7b44;
+      border-color: #bfe4cb;
+      background: #e8f8ee;
+    }
+
+    .ticket-remaining {
+      font-size: 14px;
+      color: #f43388;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .ticket-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ticket-stand {
+      font-size: 12px;
+      color: #60728a;
+      font-weight: 700;
+    }
+
+    .ticket-book-btn {
+      border: none;
+      background: #0b1a33;
+      color: #fff;
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .ticket-book-btn:disabled {
+      background: #95a2b7;
+      cursor: not-allowed;
+    }
+
+    .ticket-empty {
+      padding: 18px;
+      text-align: center;
+      color: #5d6d84;
+      font-size: 14px;
+      font-weight: 700;
     }
 
     .summary-line {
@@ -845,6 +1061,14 @@
 
       .ticket-btn {
         width: 100%;
+      }
+
+      .ticket-list {
+        max-height: 380px;
+      }
+
+      .pricing-controls {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -1031,6 +1255,28 @@
           </div>
 
           <div class="checkout-box">
+            <div class="pricing-panel">
+              <div class="pricing-head">
+                <h3>Ticket Listings</h3>
+                <span class="listing-count-pill" id="listingCountLabel">0 listings</span>
+              </div>
+
+              <div class="pricing-controls">
+                <select id="listSort">
+                  <option value="priceLow">Sort: Price low to high</option>
+                  <option value="ratingHigh">Sort: Best rating</option>
+                  <option value="seatsHigh">Sort: Tickets remaining</option>
+                </select>
+                <select id="listFilter">
+                  <option value="all">All sections</option>
+                  <option value="available">Available only</option>
+                  <option value="bestPrice">Best price</option>
+                </select>
+              </div>
+
+              <div class="ticket-list" id="ticketList"></div>
+            </div>
+
             <h3>Checkout</h3>
 
             <div class="section-drawer" id="sectionDrawer">
@@ -1262,12 +1508,17 @@
     const drawerPrice = document.getElementById("drawerPrice");
     const drawerSeatsLeft = document.getElementById("drawerSeatsLeft");
     const drawerBookBtn = document.getElementById("drawerBookBtn");
+    const listSort = document.getElementById("listSort");
+    const listFilter = document.getElementById("listFilter");
+    const ticketList = document.getElementById("ticketList");
+    const listingCountLabel = document.getElementById("listingCountLabel");
 
     let allEvents = [...fallbackEvents];
     let events = [...fallbackEvents];
     let currentEvent = null;
     let selectedSeats = [];
     let seatData = [];
+    let ticketListings = [];
     let activeSectionId = null;
     let hoveredSeatId = null;
     let stadiumZoom = 1;
@@ -1835,6 +2086,172 @@
       ];
     }
 
+    function getRatingForSection(sectionId) {
+      const raw = 7.8 + (stableHash(`${sectionId}:rating`) % 24) / 10;
+      return Math.min(10, Number(raw.toFixed(1)));
+    }
+
+    function getRatingText(rating) {
+      if (rating >= 9.4) return "Incredible";
+      if (rating >= 9) return "Amazing";
+      if (rating >= 8.5) return "Great";
+      return "Good";
+    }
+
+    function getRowForSection(section) {
+      if (section.grandstand) return "GA";
+      const rowCode = String.fromCharCode(65 + (stableHash(`${section.id}:row`) % 12));
+      const rowNum = 1 + (stableHash(`${section.id}:rowNo`) % 4);
+      return `${rowCode}${rowNum}`;
+    }
+
+    function buildTicketListings() {
+      const sections = seatData.filter((section) => !section.mini);
+      const availablePool = sections.filter((section) => section.status !== "sold");
+      const sortedByPrice = [...availablePool].sort((a, b) => a.price - b.price);
+      const bestPriceCount = Math.max(6, Math.floor(sortedByPrice.length * 0.24));
+      const bestPriceIds = new Set(sortedByPrice.slice(0, bestPriceCount).map((section) => section.id));
+
+      ticketListings = availablePool.map((section) => {
+        const rating = getRatingForSection(section.id);
+        const features = ["Clear view"];
+        if (stableHash(`${section.id}:instant`) % 100 < 48) {
+          features.push("Instant Download");
+        }
+        if (bestPriceIds.has(section.id)) {
+          features.push("Best price");
+        }
+
+        return {
+          id: `listing-${section.id}`,
+          sectionId: section.id,
+          title: `${section.stand}`,
+          stand: section.grandstand ? "Grandstand" : "Pavilion",
+          row: getRowForSection(section),
+          tickets: Math.max(1, Math.min(6, section.seatsLeft)),
+          price: section.price,
+          rating,
+          ratingText: getRatingText(rating),
+          remaining: section.seatsLeft,
+          status: section.status,
+          features,
+          bestPrice: bestPriceIds.has(section.id)
+        };
+      });
+    }
+
+    function getVisibleTicketListings() {
+      let items = [...ticketListings];
+
+      if (listFilter.value === "available") {
+        items = items.filter((item) => item.status === "available");
+      } else if (listFilter.value === "bestPrice") {
+        items = items.filter((item) => item.bestPrice);
+      }
+
+      if (listSort.value === "priceLow") {
+        items.sort((a, b) => a.price - b.price);
+      } else if (listSort.value === "ratingHigh") {
+        items.sort((a, b) => b.rating - a.rating);
+      } else if (listSort.value === "seatsHigh") {
+        items.sort((a, b) => b.remaining - a.remaining);
+      }
+
+      return items;
+    }
+
+    function updateTicketCardStates() {
+      const cards = ticketList.querySelectorAll(".ticket-card");
+      cards.forEach((card) => {
+        const sectionId = card.getAttribute("data-section-id");
+        const active = activeSectionId === sectionId || selectedSeats.includes(sectionId);
+        const hovered = hoveredSeatId === sectionId;
+        card.classList.toggle("active", active);
+        card.classList.toggle("hovered", hovered);
+      });
+    }
+
+    function renderTicketList() {
+      const items = getVisibleTicketListings();
+      listingCountLabel.textContent = `${items.length} listings`;
+
+      if (items.length === 0) {
+        ticketList.innerHTML = `<div class="ticket-empty">No listings for selected filter.</div>`;
+        return;
+      }
+
+      ticketList.innerHTML = items
+        .map((item) => {
+          const section = seatData.find((entry) => entry.id === item.sectionId);
+          const isSold = !section || section.status === "sold";
+          const features = item.features
+            .map((feature) => `<span class="feature-chip ${feature === "Best price" ? "best" : ""}">${feature}</span>`)
+            .join("");
+          const remainText = item.remaining <= 1
+            ? "1 ticket remaining in this listing"
+            : `${item.remaining} tickets remaining in this listing`;
+          return `
+            <article class="ticket-card" data-section-id="${item.sectionId}">
+              <div class="ticket-head">
+                <div class="ticket-title">${item.title}</div>
+                <div class="ticket-price-wrap">
+                  <div class="ticket-price">${formatInrCompact(item.price)}</div>
+                  <div class="ticket-rating">
+                    <span class="rating-pill">${item.rating}</span>
+                    <span>${item.ratingText}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="ticket-rowline">Row ${item.row} • ${item.tickets} ticket${item.tickets > 1 ? "s" : ""}</div>
+              <div class="ticket-features">${features}</div>
+              <div class="ticket-remaining">${remainText}</div>
+              <div class="ticket-bottom">
+                <span class="ticket-stand">${item.stand}</span>
+                <button type="button" class="ticket-book-btn" ${isSold ? "disabled" : ""}>${isSold ? "Sold Out" : "Book Now"}</button>
+              </div>
+            </article>
+          `;
+        })
+        .join("");
+
+      ticketList.querySelectorAll(".ticket-card").forEach((card) => {
+        const sectionId = card.getAttribute("data-section-id");
+        const section = seatData.find((entry) => entry.id === sectionId);
+        const btn = card.querySelector(".ticket-book-btn");
+
+        card.addEventListener("mouseenter", () => {
+          setHoverSeat(sectionId);
+        });
+
+        card.addEventListener("mouseleave", () => {
+          clearHoverSeat();
+        });
+
+        card.addEventListener("click", () => {
+          activeSectionId = sectionId;
+          renderSeats();
+          updateSummary();
+          updateTicketCardStates();
+        });
+
+        if (btn) {
+          btn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (!section || section.status === "sold") return;
+            if (!selectedSeats.includes(sectionId)) {
+              selectedSeats.push(sectionId);
+            }
+            activeSectionId = sectionId;
+            renderSeats();
+            updateSummary();
+            updateTicketCardStates();
+          });
+        }
+      });
+
+      updateTicketCardStates();
+    }
+
     function pointOnEllipse(rx, ry, angleDeg) {
       const angleRad = (angleDeg * Math.PI) / 180;
       return {
@@ -1897,28 +2314,139 @@
 
     function renderPriceLabels() {
       const labels = [];
+      const placedRects = [];
       const focusedSet = new Set(selectedSeats);
       if (hoveredSeatId) focusedSet.add(hoveredSeatId);
+      if (activeSectionId) focusedSet.add(activeSectionId);
 
-      const prioritySections = seatData
-        .filter((section) => !section.mini && section.status !== "sold")
-        .filter((section) => section.labelType !== "none" || focusedSet.has(section.id))
-        .sort((a, b) => {
-          const aPriority = focusedSet.has(a.id) ? 100 : a.labelType === "amazing" ? 80 : 50;
-          const bPriority = focusedSet.has(b.id) ? 100 : b.labelType === "amazing" ? 80 : 50;
-          return bPriority - aPriority;
+      const bookable = seatData.filter((section) => !section.mini && section.status !== "sold");
+      const bestPrices = [...bookable]
+        .sort((a, b) => a.price - b.price)
+        .slice(0, Math.max(6, Math.floor(bookable.length * 0.2)));
+      const bestPriceSet = new Set(bestPrices.map((item) => item.id));
+
+      const maxLabels = stadiumZoom < 0.95
+        ? 10
+        : stadiumZoom < 1.2
+          ? 16
+          : stadiumZoom < 1.5
+            ? 24
+            : 34;
+
+      const candidates = bookable
+        .map((section) => {
+          let priority = 0;
+          if (focusedSet.has(section.id)) priority += 1200;
+          if (section.seatsLeft <= 2) priority += 550;
+          if (bestPriceSet.has(section.id)) priority += 500;
+          if (section.labelType === "amazing") priority += 420;
+          if (section.grandstand) priority += 260;
+          if (section.status === "limited") priority += 310;
+          priority += 100 - (section.price / 1000);
+          return { section, priority };
         })
-        .slice(0, 22);
+        .sort((a, b) => b.priority - a.priority);
 
-      prioritySections.forEach((section) => {
-        const isSelected = selectedSeats.includes(section.id);
-        const pos = getSectionCenter(section, section.grandstand ? 28 : 34, section.grandstand ? 26 : 28);
-        const subText = section.labelType === "amazing" ? "Amazing" : `${section.seatsLeft} left`;
+      const selectedCandidates = [];
+      for (const item of candidates) {
+        if (selectedCandidates.length >= maxLabels) break;
+        if (item.priority > 430 || focusedSet.has(item.section.id)) {
+          selectedCandidates.push(item.section);
+        }
+      }
+
+      focusedSet.forEach((sectionId) => {
+        const section = bookable.find((entry) => entry.id === sectionId);
+        if (section && !selectedCandidates.some((entry) => entry.id === section.id)) {
+          selectedCandidates.unshift(section);
+        }
+      });
+
+      const viewMinX = 40;
+      const viewMaxX = 1060;
+      const viewMinY = 26;
+      const viewMaxY = 794;
+      const gap = 10;
+
+      function collides(rect) {
+        return placedRects.some((box) => !(
+          rect.x + rect.w + gap < box.x ||
+          rect.x > box.x + box.w + gap ||
+          rect.y + rect.h + gap < box.y ||
+          rect.y > box.y + box.h + gap
+        ));
+      }
+
+      selectedCandidates.forEach((section) => {
+        const midAngle = (section.startAngle + section.endAngle) / 2;
+        const radians = (midAngle * Math.PI) / 180;
+        const anchor = pointOnEllipse(section.outerRx + 6, section.outerRy + 6, midAngle);
+        const sideX = Math.cos(radians) >= 0 ? 1 : -1;
+        const sideY = Math.sin(radians) >= 0 ? 1 : -1;
+        const distance = section.grandstand ? 88 : 74;
+        const base = pointOnEllipse(section.outerRx + distance, section.outerRy + distance * 0.82, midAngle);
+        const mainText = formatInrCompact(section.price);
+        const labelWidth = Math.max(134, mainText.length * 8 + 44);
+        const labelHeight = 52;
+        const offsets = [
+          { x: 0, y: 0 },
+          { x: 0, y: -18 },
+          { x: 0, y: 18 },
+          { x: 16 * sideX, y: -14 },
+          { x: 16 * sideX, y: 14 },
+          { x: -16 * sideX, y: -14 },
+          { x: -16 * sideX, y: 14 },
+          { x: 28 * sideX, y: 0 },
+          { x: -28 * sideX, y: 0 },
+          { x: 24 * sideX, y: 22 * sideY },
+          { x: 24 * sideX, y: -22 * sideY }
+        ];
+
+        let placed = null;
+        for (const offset of offsets) {
+          const cx = clamp(base.x + offset.x, viewMinX + labelWidth / 2, viewMaxX - labelWidth / 2);
+          const cy = clamp(base.y + offset.y, viewMinY + labelHeight / 2, viewMaxY - labelHeight / 2);
+          const rect = {
+            x: cx - labelWidth / 2,
+            y: cy - labelHeight / 2,
+            w: labelWidth,
+            h: labelHeight
+          };
+          if (!collides(rect)) {
+            placed = { cx, cy, rect };
+            break;
+          }
+        }
+
+        if (!placed) {
+          if (!focusedSet.has(section.id)) {
+            return;
+          }
+          const cx = clamp(base.x, viewMinX + labelWidth / 2, viewMaxX - labelWidth / 2);
+          const cy = clamp(base.y, viewMinY + labelHeight / 2, viewMaxY - labelHeight / 2);
+          placed = {
+            cx,
+            cy,
+            rect: {
+              x: cx - labelWidth / 2,
+              y: cy - labelHeight / 2,
+              w: labelWidth,
+              h: labelHeight
+            }
+          };
+        }
+
+        placedRects.push(placed.rect);
+
+        const isSelected = selectedSeats.includes(section.id) || activeSectionId === section.id;
+        const subText = section.labelType === "amazing" && section.seatsLeft > 2 ? "Amazing" : `${section.seatsLeft} left`;
+
         labels.push(`
-          <g class="price-label ${section.labelType === "amazing" ? "amazing" : ""} ${isSelected ? "selected" : ""}" transform="translate(${pos.x.toFixed(1)} ${pos.y.toFixed(1)})">
-            <rect x="-62" y="-23" width="124" height="46"></rect>
-            <text class="price-main" x="0" y="-5">${formatInrCompact(section.price)}</text>
-            <text class="price-sub" x="0" y="13">${subText}</text>
+          <line class="price-link" x1="${anchor.x.toFixed(1)}" y1="${anchor.y.toFixed(1)}" x2="${placed.cx.toFixed(1)}" y2="${placed.cy.toFixed(1)}"></line>
+          <g class="price-label ${section.labelType === "amazing" && section.seatsLeft > 2 ? "amazing" : ""} ${isSelected ? "selected" : ""}" transform="translate(${placed.cx.toFixed(1)} ${placed.cy.toFixed(1)})">
+            <rect x="${(-labelWidth / 2).toFixed(1)}" y="${(-labelHeight / 2).toFixed(1)}" width="${labelWidth.toFixed(1)}" height="${labelHeight.toFixed(1)}"></rect>
+            <text class="price-main" x="0" y="-6">${mainText}</text>
+            <text class="price-sub" x="0" y="14">${subText}</text>
           </g>
         `);
       });
@@ -1965,6 +2493,7 @@
             section.status,
             section.grandstand ? "grandstand" : "",
             section.mini ? "mini" : "",
+            activeSectionId === section.id ? "focused" : "",
             selectedSeats.includes(section.id) ? "selected" : "",
             hoveredSeatId === section.id ? "hover" : ""
           ]
@@ -1989,6 +2518,7 @@
       renderNumberTiles();
       renderPriceLabels();
       updateSectionDrawer();
+      updateTicketCardStates();
 
       sectionLayer.querySelectorAll(".section-node").forEach((node) => {
         const id = node.getAttribute("data-id");
@@ -2049,12 +2579,16 @@
       activeSectionId = null;
       hoveredSeatId = null;
       generateSeats();
+      buildTicketListings();
+      listSort.value = "priceLow";
+      listFilter.value = "all";
       resetMapView();
 
       bookingTitle.textContent = currentEvent.title;
       bookingMeta.textContent = `${currentEvent.time} | ${currentEvent.city}, ${currentEvent.location} | ${currentEvent.stadium}`;
       bookingPanel.classList.add("active");
 
+      renderTicketList();
       renderSeats();
       updateSummary();
 
@@ -2236,6 +2770,12 @@
     cityFilter.addEventListener("change", renderEvents);
     dateFilter.addEventListener("change", renderEvents);
     priceFilter.addEventListener("change", renderEvents);
+    listSort.addEventListener("change", () => {
+      renderTicketList();
+    });
+    listFilter.addEventListener("change", () => {
+      renderTicketList();
+    });
 
     function zoomMap(delta) {
       stadiumZoom = clamp(stadiumZoom + delta, 0.68, 2.2);
