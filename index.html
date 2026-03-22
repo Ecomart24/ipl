@@ -1334,7 +1334,7 @@
         }
       }
 
-      for (let c = 1; c <= 8; c += 1) {
+      for (let c = 1; c <= 12; c += 1) {
         const seatId = `GS${c}`;
         const booked = stableHash(`${eventSeed}:${seatId}:booked`) % 100 < 16;
         seatData.push({
@@ -1380,6 +1380,9 @@
       const count = items.length;
       const total = items.reduce((sum, seat) => sum + seat.price, 0);
       const uniquePrices = [...new Set(items.map((seat) => seat.price))].sort((a, b) => a - b);
+      const seatLabel = items
+        .map((seat) => `${seat.id} (${formatInr(seat.price).replace("INR ", "")})`)
+        .join(", ");
 
       let perSeatText = "INR 0";
       if (uniquePrices.length === 1) {
@@ -1390,7 +1393,7 @@
 
       summaryMatch.textContent = currentEvent ? currentEvent.title : "-";
       summarySeats.textContent = count;
-      summarySeatNames.textContent = count ? selectedSeats.join(", ") : "-";
+      summarySeatNames.textContent = count ? seatLabel : "-";
       summaryPrice.textContent = perSeatText;
       summaryTotal.textContent = formatInr(total);
     }
@@ -1456,6 +1459,9 @@
 
       const selectedItems = getSelectedSeatItems();
       const total = selectedItems.reduce((sum, seat) => sum + seat.price, 0);
+      const seatLabel = selectedItems
+        .map((seat) => `${seat.id} (${formatInr(seat.price).replace("INR ", "")})`)
+        .join(", ");
       showToast(`Payment success demo: ${formatInr(total)} via ${paymentMethod.value}`);
 
       setTimeout(() => {
@@ -1463,7 +1469,7 @@
         const params = new URLSearchParams({
           id: bookingId,
           match: currentEvent.title,
-          seats: selectedSeats.join(", "),
+          seats: seatLabel,
           total: String(total),
           name: buyerName.value.trim(),
           email: buyerEmail.value.trim(),
