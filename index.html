@@ -427,17 +427,37 @@
       height: 58px;
       border-radius: 16px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 17px;
+      gap: 2px;
+      font-size: 15px;
       font-weight: 800;
+      line-height: 1;
+      padding: 4px;
       cursor: pointer;
       user-select: none;
+    }
+
+    .seat-id {
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .seat-price {
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0.92;
     }
 
     .seat.available {
       background: #c6e8d3;
       color: #0c5d40;
+    }
+
+    .seat.grandstand.available {
+      background: #d6e5b4;
+      color: #455f1f;
     }
 
     .seat.booked {
@@ -450,6 +470,10 @@
       background: #88b8ef;
       color: #0c3f89;
       border: 2px solid #5a9ae5;
+    }
+
+    .grandstand-box {
+      background: #d6e5b4;
     }
 
     .checkout-box {
@@ -681,6 +705,7 @@
 
             <div class="seat-legend">
               <span><i class="legend-box available-box"></i> Available</span>
+              <span><i class="legend-box grandstand-box"></i> Grandstand</span>
               <span><i class="legend-box selected-box"></i> Selected</span>
               <span><i class="legend-box booked-box"></i> Booked</span>
             </div>
@@ -985,6 +1010,14 @@
       return Math.round(value / 50) * 50;
     }
 
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function formatInr(value) {
+      return `INR ${Number(value || 0).toLocaleString("en-IN")}`;
+    }
+
     function stableHash(text) {
       let hash = 0;
       const input = String(text || "");
@@ -1012,6 +1045,33 @@
       }
 
       return rounded;
+    }
+
+    function getPricePoolForSeats() {
+      if (viagogoPrices.length > 0) {
+        return viagogoPrices;
+      }
+
+      const base = currentEvent?.price || 3000;
+      return [
+        base - 700,
+        base - 450,
+        base - 200,
+        base,
+        base + 250,
+        base + 500,
+        base + 850
+      ]
+        .map((value) => roundToNearest50(clamp(value, 1200, 20000)))
+        .sort((a, b) => a - b);
+    }
+
+    function getSeatPriceFor(eventId, seatId, tierMultiplier) {
+      const pool = getPricePoolForSeats();
+      const base = pool[stableHash(`${eventId}:${seatId}`) % pool.length];
+      const noiseStep = (stableHash(`${seatId}:noise`) % 7) - 3;
+      const noisy = base * tierMultiplier + noiseStep * 50;
+      return roundToNearest50(clamp(noisy, 1200, 20000));
     }
 
     async function refreshViagogoPrices(force = false) {
@@ -1251,15 +1311,38 @@
     function generateSeats() {
       seatData = [];
       const rows = ["A", "B", "C", "D", "E", "F"];
+      const eventSeed = currentEvent?.id || "match";
+      const tierByRow = {
+        A: 1.12,
+        B: 1.08,
+        C: 1.04,
+        D: 1.0,
+        E: 0.96,
+        F: 0.92
+      };
 
       for (let r = 0; r < rows.length; r += 1) {
         for (let c = 1; c <= 8; c += 1) {
-          const booked = Math.random() < 0.22;
+          const seatId = `${rows[r]}${c}`;
+          const booked = stableHash(`${eventSeed}:${seatId}:booked`) % 100 < 22;
           seatData.push({
-            id: `${rows[r]}${c}`,
-            booked
+            id: seatId,
+            booked,
+            grandstand: false,
+            price: getSeatPriceFor(eventSeed, seatId, tierByRow[rows[r]])
           });
         }
+      }
+
+      for (let c = 1; c <= 8; c += 1) {
+        const seatId = `GS${c}`;
+        const booked = stableHash(`${eventSeed}:${seatId}:booked`) % 100 < 16;
+        seatData.push({
+          id: seatId,
+          booked,
+          grandstand: true,
+          price: getSeatPriceFor(eventSeed, seatId, 0.82)
+        });
       }
     }
 
@@ -1267,6 +1350,9 @@
       seatGrid.innerHTML = seatData
         .map((seat) => {
           let classes = "seat ";
+          if (seat.grandstand) {
+            classes += "grandstand ";
+          }
           if (seat.booked) {
             classes += "booked";
           } else if (selectedSeats.includes(seat.id)) {
@@ -1277,23 +1363,36 @@
 
           return `
             <div class="${classes}" onclick="toggleSeat('${seat.id}')">
-              ${seat.id}
+              <span class="seat-id">${seat.id}</span>
+              <span class="seat-price">${formatInr(seat.price).replace("INR ", "")}</span>
             </div>
           `;
         })
         .join("");
     }
 
+    function getSelectedSeatItems() {
+      return seatData.filter((seat) => selectedSeats.includes(seat.id));
+    }
+
     function updateSummary() {
-      const count = selectedSeats.length;
-      const price = currentEvent ? currentEvent.price : 0;
-      const total = count * price;
+      const items = getSelectedSeatItems();
+      const count = items.length;
+      const total = items.reduce((sum, seat) => sum + seat.price, 0);
+      const uniquePrices = [...new Set(items.map((seat) => seat.price))].sort((a, b) => a - b);
+
+      let perSeatText = "INR 0";
+      if (uniquePrices.length === 1) {
+        perSeatText = formatInr(uniquePrices[0]);
+      } else if (uniquePrices.length > 1) {
+        perSeatText = `${formatInr(uniquePrices[0])} - ${formatInr(uniquePrices[uniquePrices.length - 1])}`;
+      }
 
       summaryMatch.textContent = currentEvent ? currentEvent.title : "-";
       summarySeats.textContent = count;
       summarySeatNames.textContent = count ? selectedSeats.join(", ") : "-";
-      summaryPrice.textContent = `INR ${price}`;
-      summaryTotal.textContent = `INR ${total}`;
+      summaryPrice.textContent = perSeatText;
+      summaryTotal.textContent = formatInr(total);
     }
 
     function openBooking(id) {
@@ -1355,8 +1454,9 @@
         return;
       }
 
-      const total = selectedSeats.length * currentEvent.price;
-      showToast(`Payment success demo: INR ${total} via ${paymentMethod.value}`);
+      const selectedItems = getSelectedSeatItems();
+      const total = selectedItems.reduce((sum, seat) => sum + seat.price, 0);
+      showToast(`Payment success demo: ${formatInr(total)} via ${paymentMethod.value}`);
 
       setTimeout(() => {
         const bookingId = `IPL-${Date.now()}`;
