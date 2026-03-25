@@ -390,6 +390,24 @@ async function verifyOrder(payload) {
   }
 }
 
+function postToGateway(url, fields) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = url;
+  form.style.display = "none";
+
+  for (const [name, value] of Object.entries(fields || {})) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = String(value ?? "");
+    form.appendChild(input);
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
 async function runCheckout() {
   const section = selectedSection();
   if (!section || !state.selectedMatch) {
@@ -413,6 +431,44 @@ async function runCheckout() {
       }
     })
   });
+
+  if (order.mode === "sabpaisa") {
+    const gatewayUrl = order?.sabpaisa?.gatewayUrl;
+    const clientCode = order?.sabpaisa?.clientCode;
+    const encData = order?.sabpaisa?.encData;
+
+    if (!gatewayUrl || !clientCode || !encData) {
+      el.payNowBtn.disabled = false;
+      el.payNowBtn.textContent = "Create Payment";
+      throw new Error("SabPaisa initiation payload is incomplete.");
+    }
+
+    el.payNowBtn.textContent = "Redirecting to SabPaisa...";
+    postToGateway(gatewayUrl, {
+      encData,
+      clientCode
+    });
+    return;
+  }
+
+  if (order.mode === "ccavenue") {
+    const gatewayUrl = order?.ccavenue?.gatewayUrl;
+    const accessCode = order?.ccavenue?.accessCode;
+    const encRequest = order?.ccavenue?.encRequest;
+
+    if (!gatewayUrl || !accessCode || !encRequest) {
+      el.payNowBtn.disabled = false;
+      el.payNowBtn.textContent = "Create Payment";
+      throw new Error("CCAvenue initiation payload is incomplete.");
+    }
+
+    el.payNowBtn.textContent = "Redirecting to CCAvenue...";
+    postToGateway(gatewayUrl, {
+      encRequest,
+      access_code: accessCode
+    });
+    return;
+  }
 
   if (order.mode === "razorpay" && window.Razorpay) {
     el.payNowBtn.disabled = false;
@@ -466,6 +522,17 @@ async function runCheckout() {
   el.payNowBtn.textContent = "Create Payment";
 }
 
+function notifyCheckoutStatusFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const status = String(params.get("payment") || "").trim().toLowerCase();
+  const reason = String(params.get("reason") || "").trim();
+
+  if (status === "failed") {
+    showToast(reason || "Payment did not complete.", "error", 4800);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
+
 async function refreshLiveData() {
   try {
     await loadMatches();
@@ -482,6 +549,7 @@ async function refreshLiveData() {
 
 async function init() {
   attachEvents();
+  notifyCheckoutStatusFromQuery();
 
   try {
     state.config = await api("/api/config");

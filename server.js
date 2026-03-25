@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const path = require("path");
 const express = require("express");
 const Razorpay = require("razorpay");
+const { encrypt: sabpaisaEncrypt, decrypt: sabpaisaDecrypt } = require("sabpaisa-encryption-package-gcm");
 require("dotenv").config();
 
 const {
@@ -15,6 +16,7 @@ const liveRefreshIntervalMs = 20_000;
 const feedProvider = (process.env.TICKET_FEED_PROVIDER || "mock").trim().toLowerCase();
 const externalFeedUrl = process.env.TICKET_FEED_URL || "";
 const externalFeedToken = process.env.TICKET_FEED_BEARER_TOKEN || "";
+const checkoutProvider = (process.env.CHECKOUT_PROVIDER || "sabpaisa").trim().toLowerCase();
 const matchStatusProvider = (process.env.MATCH_STATUS_PROVIDER || "thesportsdb")
   .trim()
   .toLowerCase();
@@ -27,6 +29,46 @@ const matchStatusRefreshMs = Math.max(
 const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "";
 const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || "";
 const razorpayEnabled = Boolean(razorpayKeyId && razorpayKeySecret);
+const ccavenueMerchantId = String(process.env.CCAVENUE_MERCHANT_ID || "").trim();
+const ccavenueAccessCode = String(process.env.CCAVENUE_ACCESS_CODE || "").trim();
+const ccavenueWorkingKey = String(process.env.CCAVENUE_WORKING_KEY || "").trim();
+const ccavenueEnv = String(process.env.CCAVENUE_ENV || "test").trim().toLowerCase();
+const ccavenueRedirectBaseUrl = String(process.env.CCAVENUE_REDIRECT_BASE_URL || "").trim();
+const ccavenueEnabled = Boolean(
+  ccavenueMerchantId && ccavenueAccessCode && ccavenueWorkingKey
+);
+const ccavenueGatewayUrl =
+  ccavenueEnv === "production"
+    ? "https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction"
+    : "https://test.ccavenue.com/transaction/transaction.do?command=initiateTransaction";
+const ccavenueIvBuffer = Buffer.from(
+  [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f]
+);
+const sabpaisaClientCode = String(process.env.SABPAISA_CLIENT_CODE || "").trim();
+const sabpaisaTransUserName = String(process.env.SABPAISA_TRANS_USER_NAME || "").trim();
+const sabpaisaTransUserPassword = String(process.env.SABPAISA_TRANS_USER_PASSWORD || "").trim();
+const sabpaisaAuthKey = String(process.env.SABPAISA_AUTH_KEY || "").trim();
+const sabpaisaAuthIV = String(process.env.SABPAISA_AUTH_IV || "").trim();
+const sabpaisaEnv = String(process.env.SABPAISA_ENV || "stag").trim().toLowerCase();
+const sabpaisaCallbackBaseUrl = String(process.env.SABPAISA_CALLBACK_BASE_URL || "").trim();
+const sabpaisaChannelId = String(process.env.SABPAISA_CHANNEL_ID || "web").trim();
+const sabpaisaEnabled = Boolean(
+  sabpaisaClientCode &&
+    sabpaisaTransUserName &&
+    sabpaisaTransUserPassword &&
+    sabpaisaAuthKey &&
+    sabpaisaAuthIV
+);
+
+function getSabpaisaGatewayUrl(env) {
+  if (env === "uat") {
+    return "https://secure.sabpaisa.in/SabPaisa/sabPaisaInit?v=1";
+  }
+  if (env === "prod" || env === "production" || env === "live") {
+    return "https://securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1";
+  }
+  return "https://stage-securepay.sabpaisa.in/SabPaisa/sabPaisaInit?v=1";
+}
 
 const razorpayClient = razorpayEnabled
   ? new Razorpay({
@@ -35,7 +77,9 @@ const razorpayClient = razorpayEnabled
     })
   : null;
 
+app.set("trust proxy", true);
 app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
 const matchCatalogue = getAllMatches();
@@ -555,10 +599,163 @@ function getSectionCapacity(matchSlug, sectionId) {
   return match.sections.find((section) => section.id === sectionId) || null;
 }
 
+function normalizeBaseUrl(input) {
+  return String(input || "")
+    .trim()
+    .replace(/\/+$/, "");
+}
+
+function getCheckoutMode() {
+  if (checkoutProvider === "demo") {
+    return "demo";
+  }
+
+  if (checkoutProvider === "sabpaisa") {
+    return sabpaisaEnabled ? "sabpaisa" : "demo";
+  }
+
+  if (checkoutProvider === "razorpay") {
+    return razorpayEnabled ? "razorpay" : "demo";
+  }
+
+  if (checkoutProvider === "ccavenue") {
+    return ccavenueEnabled ? "ccavenue" : "demo";
+  }
+
+  if (sabpaisaEnabled) {
+    return "sabpaisa";
+  }
+
+  if (ccavenueEnabled) {
+    return "ccavenue";
+  }
+
+  if (razorpayEnabled) {
+    return "razorpay";
+  }
+
+  return "demo";
+}
+
+function getPublicBaseUrl(req, explicitBaseUrl = "") {
+  if (explicitBaseUrl) {
+    return normalizeBaseUrl(explicitBaseUrl);
+  }
+
+  if (ccavenueRedirectBaseUrl) {
+    return normalizeBaseUrl(ccavenueRedirectBaseUrl);
+  }
+
+  const forwardedProto = String(req.headers["x-forwarded-proto"] || "")
+    .split(",")[0]
+    .trim();
+  const forwardedHost = String(req.headers["x-forwarded-host"] || "")
+    .split(",")[0]
+    .trim();
+  const protocol = forwardedProto || req.protocol || "http";
+  const host = forwardedHost || req.get("host") || `localhost:${port}`;
+  return `${protocol}://${host}`;
+}
+
+function ccavenueKeyBuffer(workingKey) {
+  return crypto.createHash("md5").update(String(workingKey)).digest();
+}
+
+function encryptCcavenue(payload, workingKey) {
+  const cipher = crypto.createCipheriv(
+    "aes-128-cbc",
+    ccavenueKeyBuffer(workingKey),
+    ccavenueIvBuffer
+  );
+  let encrypted = cipher.update(String(payload), "utf8", "hex");
+  encrypted += cipher.final("hex");
+  return encrypted;
+}
+
+function decryptCcavenue(payload, workingKey) {
+  const decipher = crypto.createDecipheriv(
+    "aes-128-cbc",
+    ccavenueKeyBuffer(workingKey),
+    ccavenueIvBuffer
+  );
+  let decrypted = decipher.update(String(payload), "hex", "utf8");
+  decrypted += decipher.final("utf8");
+  return decrypted;
+}
+
+function finalizeOrder(orderReference) {
+  const pendingOrder = pendingOrders.get(orderReference);
+  if (!pendingOrder) {
+    return {
+      ok: false,
+      code: 404,
+      error: "Order session expired. Please retry checkout."
+    };
+  }
+
+  const sourceSection = getSectionCapacity(
+    pendingOrder.matchSlug,
+    pendingOrder.sectionId
+  );
+  if (!sourceSection) {
+    pendingOrders.delete(orderReference);
+    return {
+      ok: false,
+      code: 404,
+      error: "Section no longer available."
+    };
+  }
+
+  const sectionStateKey = sectionKey(pendingOrder.matchSlug, pendingOrder.sectionId);
+  const currentSold = soldStateBySection.get(sectionStateKey) ?? sourceSection.baseSold;
+  const remaining = sourceSection.capacity - currentSold;
+
+  if (remaining < pendingOrder.quantity) {
+    pendingOrders.delete(orderReference);
+    return {
+      ok: false,
+      code: 409,
+      error: `Only ${remaining} ticket(s) are now available. Please retry.`
+    };
+  }
+
+  soldStateBySection.set(
+    sectionStateKey,
+    clamp(currentSold + pendingOrder.quantity, 0, sourceSection.capacity)
+  );
+  pendingOrders.delete(orderReference);
+
+  const bookingId = `IPL${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+  const match = getMatchBySlug(pendingOrder.matchSlug);
+  const purchasedAt = new Date().toISOString();
+
+  return {
+    ok: true,
+    booking: {
+      bookingId,
+      orderReference,
+      match: `${match.homeTeam} vs ${match.awayTeam}`,
+      stadium: match.stadium,
+      city: match.city,
+      section: sourceSection.label,
+      quantity: pendingOrder.quantity,
+      amountPaid: pendingOrder.pricing.total,
+      purchasedAt
+    },
+    match,
+    section: sourceSection,
+    pendingOrder
+  };
+}
+
 app.get("/api/config", (req, res) => {
+  const checkoutMode = getCheckoutMode();
   res.json({
-    checkoutMode: razorpayEnabled ? "razorpay" : "demo",
+    checkoutMode,
+    checkoutProvider,
     razorpayKeyId,
+    ccavenueEnv,
+    sabpaisaEnv,
     liveRefreshIntervalMs,
     matchStatusRefreshMs,
     matchStatusProvider,
@@ -693,6 +890,7 @@ app.post("/api/checkout/create-order", async (req, res) => {
     .randomBytes(2)
     .toString("hex")
     .toUpperCase()}`;
+  const checkoutMode = getCheckoutMode();
 
   const orderRecord = {
     orderReference,
@@ -702,11 +900,121 @@ app.post("/api/checkout/create-order", async (req, res) => {
     pricing,
     buyer: parsed.buyer,
     createdAt: Date.now(),
-    mode: razorpayEnabled ? "razorpay" : "demo",
-    razorpayOrderId: null
+    mode: checkoutMode,
+    razorpayOrderId: null,
+    paymentTrackingId: null
   };
 
-  if (razorpayEnabled) {
+  const responsePayload = {
+    orderReference,
+    pricing,
+    match: {
+      slug: match.slug,
+      homeTeam: match.homeTeam,
+      awayTeam: match.awayTeam,
+      dateTime: match.dateTime,
+      stadium: match.stadium,
+      city: match.city
+    },
+    section: {
+      id: liveSection.id,
+      label: liveSection.label,
+      stand: liveSection.stand,
+      selectedUnitPrice: liveSection.dynamicPrice
+    }
+  };
+
+  if (checkoutMode === "sabpaisa") {
+    try {
+      const baseUrl = getPublicBaseUrl(req, sabpaisaCallbackBaseUrl);
+      const callbackUrl = `${baseUrl}/api/checkout/sabpaisa/response`;
+      const sabpaisaPayload = new URLSearchParams({
+        payerName: parsed.buyer.name,
+        payerEmail: parsed.buyer.email,
+        payerMobile: parsed.buyer.phone,
+        clientTxnId: orderReference,
+        amount: pricing.total.toFixed(2),
+        amountType: pricing.currency,
+        clientCode: sabpaisaClientCode,
+        transUserName: sabpaisaTransUserName,
+        transUserPassword: sabpaisaTransUserPassword,
+        callbackUrl,
+        channelId: sabpaisaChannelId,
+        udf1: match.slug,
+        udf2: section.id,
+        udf3: String(parsed.quantity),
+        udf4: String(liveSection.dynamicPrice)
+      }).toString();
+
+      const encData = sabpaisaEncrypt(
+        sabpaisaPayload,
+        sabpaisaAuthKey,
+        sabpaisaAuthIV
+      );
+      pendingOrders.set(orderReference, orderRecord);
+
+      res.json({
+        ...responsePayload,
+        mode: "sabpaisa",
+        sabpaisa: {
+          gatewayUrl: getSabpaisaGatewayUrl(sabpaisaEnv),
+          clientCode: sabpaisaClientCode,
+          encData
+        }
+      });
+      return;
+    } catch (error) {
+      console.error("[checkout] SabPaisa init error:", error.message);
+      res.status(500).json({
+        error: "Unable to initiate SabPaisa right now. Please retry."
+      });
+      return;
+    }
+  }
+
+  if (checkoutMode === "ccavenue") {
+    try {
+      const baseUrl = getPublicBaseUrl(req);
+      const redirectUrl = `${baseUrl}/api/checkout/ccavenue/response`;
+      const cancelUrl = `${baseUrl}/api/checkout/ccavenue/response`;
+      const merchantPayload = new URLSearchParams({
+        merchant_id: ccavenueMerchantId,
+        order_id: orderReference,
+        currency: pricing.currency,
+        amount: pricing.total.toFixed(2),
+        redirect_url: redirectUrl,
+        cancel_url: cancelUrl,
+        language: "EN",
+        billing_name: parsed.buyer.name,
+        billing_email: parsed.buyer.email,
+        billing_tel: parsed.buyer.phone,
+        billing_country: "India",
+        merchant_param1: match.slug,
+        merchant_param2: section.id
+      }).toString();
+      const encRequest = encryptCcavenue(merchantPayload, ccavenueWorkingKey);
+
+      pendingOrders.set(orderReference, orderRecord);
+      res.json({
+        ...responsePayload,
+        mode: "ccavenue",
+        ccavenue: {
+          gatewayUrl: ccavenueGatewayUrl,
+          accessCode: ccavenueAccessCode,
+          encRequest
+        }
+      });
+      return;
+    } catch (error) {
+      console.error("[checkout] CCAvenue init error:", error.message);
+      res.status(500).json({
+        error: "Unable to initiate CCAvenue right now. Please retry."
+      });
+      return;
+    }
+  }
+
+  if (checkoutMode === "razorpay") {
     try {
       const order = await razorpayClient.orders.create({
         amount: pricing.total * 100,
@@ -724,23 +1032,8 @@ app.post("/api/checkout/create-order", async (req, res) => {
       pendingOrders.set(orderReference, orderRecord);
 
       res.json({
+        ...responsePayload,
         mode: "razorpay",
-        orderReference,
-        pricing,
-        match: {
-          slug: match.slug,
-          homeTeam: match.homeTeam,
-          awayTeam: match.awayTeam,
-          dateTime: match.dateTime,
-          stadium: match.stadium,
-          city: match.city
-        },
-        section: {
-          id: liveSection.id,
-          label: liveSection.label,
-          stand: liveSection.stand,
-          selectedUnitPrice: liveSection.dynamicPrice
-        },
         razorpay: {
           keyId: razorpayKeyId,
           orderId: order.id,
@@ -760,27 +1053,244 @@ app.post("/api/checkout/create-order", async (req, res) => {
 
   pendingOrders.set(orderReference, orderRecord);
   res.json({
+    ...responsePayload,
     mode: "demo",
-    orderReference,
-    pricing,
-    match: {
-      slug: match.slug,
-      homeTeam: match.homeTeam,
-      awayTeam: match.awayTeam,
-      dateTime: match.dateTime,
-      stadium: match.stadium,
-      city: match.city
-    },
-    section: {
-      id: liveSection.id,
-      label: liveSection.label,
-      stand: liveSection.stand,
-      selectedUnitPrice: liveSection.dynamicPrice
-    },
     demo: {
-      message: "Razorpay keys missing. Running demo verification flow."
+      message: "Payment keys missing. Running demo verification flow."
     }
   });
+});
+
+app.all("/api/checkout/sabpaisa/response", (req, res) => {
+  const redirectToHomeWithError = (reason) => {
+    const params = new URLSearchParams({
+      payment: "failed",
+      reason: String(reason || "Payment failed.")
+    });
+    res.redirect(`/?${params.toString()}`);
+  };
+
+  if (!sabpaisaEnabled) {
+    redirectToHomeWithError("SabPaisa is not configured on this server.");
+    return;
+  }
+
+  const encResponseRaw =
+    req.query?.encResponse ||
+    req.query?.responseQuery ||
+    req.body?.encResponse ||
+    req.body?.responseQuery ||
+    req.body?.encData ||
+    "";
+  const encResponse = String(encResponseRaw || "")
+    .trim()
+    .replace(/ /g, "+");
+
+  if (!encResponse) {
+    redirectToHomeWithError("Missing SabPaisa response payload.");
+    return;
+  }
+
+  let responseMap;
+  try {
+    const decrypted = sabpaisaDecrypt(encResponse, sabpaisaAuthKey, sabpaisaAuthIV);
+    responseMap = Object.fromEntries(new URLSearchParams(String(decrypted || "")).entries());
+  } catch (error) {
+    console.error("[checkout] SabPaisa decrypt error:", error.message);
+    redirectToHomeWithError("Unable to verify payment response.");
+    return;
+  }
+
+  if (!responseMap || Object.keys(responseMap).length === 0) {
+    redirectToHomeWithError("Invalid SabPaisa response payload.");
+    return;
+  }
+
+  const orderReference = String(
+    responseMap.clientTxnId || responseMap.order_id || responseMap.orderReference || ""
+  ).trim();
+  if (!orderReference) {
+    redirectToHomeWithError("Missing order id in payment response.");
+    return;
+  }
+
+  const pendingOrder = pendingOrders.get(orderReference);
+  if (!pendingOrder || pendingOrder.mode !== "sabpaisa") {
+    redirectToHomeWithError("Order session expired. Please retry checkout.");
+    return;
+  }
+
+  const status = String(
+    responseMap.status || responseMap.Status || responseMap.order_status || ""
+  )
+    .trim()
+    .toLowerCase();
+  const respCode = String(
+    responseMap.sabPaisaRespCode || responseMap.respCode || ""
+  ).trim();
+  const success =
+    status === "success" || status === "successful" || (respCode === "0000" && status !== "failure");
+
+  if (!success) {
+    pendingOrders.delete(orderReference);
+    redirectToHomeWithError(`Payment ${status || "failed"}.`);
+    return;
+  }
+
+  const paidAmount = Number(responseMap.paidAmount || responseMap.amount || 0);
+  if (!Number.isFinite(paidAmount) || Math.abs(paidAmount - pendingOrder.pricing.total) > 0.01) {
+    pendingOrders.delete(orderReference);
+    redirectToHomeWithError("Amount mismatch in gateway response.");
+    return;
+  }
+
+  const trackingId = String(responseMap.txnId || responseMap.transactionId || "").trim();
+  if (trackingId) {
+    pendingOrder.paymentTrackingId = trackingId;
+  }
+
+  const finalized = finalizeOrder(orderReference);
+  if (!finalized.ok) {
+    redirectToHomeWithError(finalized.error);
+    return;
+  }
+
+  const matchStart = new Date(finalized.match.dateTime);
+  const dateLabel = Number.isNaN(matchStart.getTime())
+    ? "Match Day"
+    : new Intl.DateTimeFormat("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }).format(matchStart);
+  const timeLabel = Number.isNaN(matchStart.getTime())
+    ? "TBA"
+    : new Intl.DateTimeFormat("en-IN", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+      }).format(matchStart);
+
+  const params = new URLSearchParams({
+    id: finalized.booking.bookingId,
+    match: finalized.booking.match,
+    date: dateLabel,
+    time: timeLabel,
+    city: finalized.booking.city,
+    stadium: finalized.booking.stadium,
+    seats: `${finalized.booking.quantity} x ${finalized.booking.section}`,
+    name: finalized.pendingOrder.buyer.name,
+    email: finalized.pendingOrder.buyer.email,
+    total: String(finalized.booking.amountPaid)
+  });
+
+  res.redirect(`/thankyou.html?${params.toString()}`);
+});
+
+app.post("/api/checkout/ccavenue/response", (req, res) => {
+  const redirectToHomeWithError = (reason) => {
+    const params = new URLSearchParams({
+      payment: "failed",
+      reason: String(reason || "Payment failed.")
+    });
+    res.redirect(`/?${params.toString()}`);
+  };
+
+  if (!ccavenueEnabled) {
+    redirectToHomeWithError("CCAvenue is not configured on this server.");
+    return;
+  }
+
+  const encResp = String(req.body?.encResp || "").trim();
+  if (!encResp) {
+    redirectToHomeWithError("Missing CCAvenue response payload.");
+    return;
+  }
+
+  let responseMap;
+  try {
+    const decrypted = decryptCcavenue(encResp, ccavenueWorkingKey);
+    responseMap = Object.fromEntries(new URLSearchParams(decrypted).entries());
+  } catch (error) {
+    console.error("[checkout] CCAvenue decrypt error:", error.message);
+    redirectToHomeWithError("Unable to verify payment response.");
+    return;
+  }
+
+  const orderReference = String(responseMap.order_id || "").trim();
+  if (!orderReference) {
+    redirectToHomeWithError("Missing order id in payment response.");
+    return;
+  }
+
+  const pendingOrder = pendingOrders.get(orderReference);
+  if (!pendingOrder || pendingOrder.mode !== "ccavenue") {
+    redirectToHomeWithError("Order session expired. Please retry checkout.");
+    return;
+  }
+
+  const responseMerchantId = String(responseMap.merchant_id || "").trim();
+  if (responseMerchantId && responseMerchantId !== ccavenueMerchantId) {
+    pendingOrders.delete(orderReference);
+    redirectToHomeWithError("Merchant validation failed.");
+    return;
+  }
+
+  const paidAmount = Number(responseMap.amount || 0);
+  if (!Number.isFinite(paidAmount) || Math.abs(paidAmount - pendingOrder.pricing.total) > 0.01) {
+    pendingOrders.delete(orderReference);
+    redirectToHomeWithError("Amount mismatch in gateway response.");
+    return;
+  }
+
+  const gatewayStatus = String(responseMap.order_status || "").trim();
+  const trackingId = String(responseMap.tracking_id || "").trim();
+  if (trackingId) {
+    pendingOrder.paymentTrackingId = trackingId;
+  }
+
+  if (gatewayStatus.toLowerCase() !== "success") {
+    pendingOrders.delete(orderReference);
+    redirectToHomeWithError(`Payment ${gatewayStatus || "failed"}.`);
+    return;
+  }
+
+  const finalized = finalizeOrder(orderReference);
+  if (!finalized.ok) {
+    redirectToHomeWithError(finalized.error);
+    return;
+  }
+
+  const matchStart = new Date(finalized.match.dateTime);
+  const dateLabel = Number.isNaN(matchStart.getTime())
+    ? "Match Day"
+    : new Intl.DateTimeFormat("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }).format(matchStart);
+  const timeLabel = Number.isNaN(matchStart.getTime())
+    ? "TBA"
+    : new Intl.DateTimeFormat("en-IN", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+      }).format(matchStart);
+
+  const params = new URLSearchParams({
+    id: finalized.booking.bookingId,
+    match: finalized.booking.match,
+    date: dateLabel,
+    time: timeLabel,
+    city: finalized.booking.city,
+    stadium: finalized.booking.stadium,
+    seats: `${finalized.booking.quantity} x ${finalized.booking.section}`,
+    name: finalized.pendingOrder.buyer.name,
+    email: finalized.pendingOrder.buyer.email,
+    total: String(finalized.booking.amountPaid)
+  });
+
+  res.redirect(`/thankyou.html?${params.toString()}`);
 });
 
 app.post("/api/checkout/verify", (req, res) => {
@@ -793,6 +1303,13 @@ app.post("/api/checkout/verify", (req, res) => {
   const pendingOrder = pendingOrders.get(orderReference);
   if (!pendingOrder) {
     res.status(404).json({ error: "Order session expired. Please retry checkout." });
+    return;
+  }
+
+  if (pendingOrder.mode === "ccavenue" || pendingOrder.mode === "sabpaisa") {
+    res.status(409).json({
+      error: `${pendingOrder.mode} orders are verified by gateway callback only.`
+    });
     return;
   }
 
@@ -828,57 +1345,23 @@ app.post("/api/checkout/verify", (req, res) => {
     }
   }
 
-  const sourceSection = getSectionCapacity(
-    pendingOrder.matchSlug,
-    pendingOrder.sectionId
-  );
-  if (!sourceSection) {
-    pendingOrders.delete(orderReference);
-    res.status(404).json({ error: "Section no longer available." });
+  const finalized = finalizeOrder(orderReference);
+  if (!finalized.ok) {
+    res.status(finalized.code).json({ error: finalized.error });
     return;
   }
-
-  const sectionStateKey = sectionKey(pendingOrder.matchSlug, pendingOrder.sectionId);
-  const currentSold = soldStateBySection.get(sectionStateKey) ?? sourceSection.baseSold;
-  const remaining = sourceSection.capacity - currentSold;
-
-  if (remaining < pendingOrder.quantity) {
-    pendingOrders.delete(orderReference);
-    res.status(409).json({
-      error: `Only ${remaining} ticket(s) are now available. Please retry.`
-    });
-    return;
-  }
-
-  soldStateBySection.set(
-    sectionStateKey,
-    clamp(currentSold + pendingOrder.quantity, 0, sourceSection.capacity)
-  );
-  pendingOrders.delete(orderReference);
-
-  const bookingId = `IPL${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
-  const match = getMatchBySlug(pendingOrder.matchSlug);
 
   res.json({
     success: true,
-    booking: {
-      bookingId,
-      orderReference,
-      match: `${match.homeTeam} vs ${match.awayTeam}`,
-      stadium: match.stadium,
-      city: match.city,
-      section: sourceSection.label,
-      quantity: pendingOrder.quantity,
-      amountPaid: pendingOrder.pricing.total,
-      purchasedAt: new Date().toISOString()
-    }
+    booking: finalized.booking
   });
 });
 
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
-    checkoutMode: razorpayEnabled ? "razorpay" : "demo",
+    checkoutMode: getCheckoutMode(),
+    checkoutProvider,
     feedProvider,
     matchStatusProvider
   });
@@ -886,6 +1369,14 @@ app.get("/api/health", (req, res) => {
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.get("/thankyou.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "thankyou.html"));
+});
+
+app.get("/see-tickets.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "see-tickets.html"));
 });
 
 initializeSoldState();
@@ -897,9 +1388,9 @@ setInterval(() => {
 }, liveRefreshIntervalMs).unref();
 
 app.listen(port, () => {
+  const checkoutMode = getCheckoutMode();
   console.log(
-    `[server] running on http://localhost:${port} | checkout=${
-      razorpayEnabled ? "razorpay" : "demo"
-    } | feed=${feedProvider} | matchStatus=${matchStatusProvider}`
+    `[server] running on http://localhost:${port} | checkout=${checkoutMode} | provider=${checkoutProvider} | feed=${feedProvider} | matchStatus=${matchStatusProvider}`
   );
 });
+

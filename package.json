@@ -2,7 +2,7 @@
   "name": "boundary-pass-ipl",
   "version": "1.0.0",
   "private": true,
-  "description": "Plain HTML, CSS, and JavaScript IPL ticket marketplace with live availability and Razorpay checkout wiring.",
+  "description": "Plain HTML, CSS, and JavaScript IPL ticket marketplace with live availability and SabPaisa/CCAvenue/Razorpay checkout wiring.",
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js"
@@ -10,6 +10,7 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "razorpay": "^2.9.6"
+    "razorpay": "^2.9.6",
+    "sabpaisa-encryption-package-gcm": "^2.0.9"
   }
 }
